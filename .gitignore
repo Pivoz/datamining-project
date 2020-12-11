@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# PyCharm folder
+.idea/
+
+# Custom files
+datasets/*.csv
+src/*.csv
