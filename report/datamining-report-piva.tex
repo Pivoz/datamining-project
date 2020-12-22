@@ -1,0 +1,44 @@
+\documentclass[sigconf,edbt]{acmart-edbt2021}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\usepackage{booktabs} % For formal tables
+\usepackage{amsfonts} 
+
+\settopmatter{printacmref=false, printccs=false, printfolios=false}
+
+\pagestyle{empty} % removes running headers
+
+
+\begin{document}
+\title{Frequently correlated terms in tweets}
+\subtitle{Data Mining Course Project Report}
+  
+
+\author{Davide Piva}
+\affiliation{%
+  \institution{2\textsuperscript{nd} year CS Master Degree @ University of Trento}
+}
+\email{davide.piva-1@studenti.unitn.it}
+
+%% A "teaser" image appears between the author and affiliation
+%% information and the body of the document, and typically spans the
+%% page.
+%\begin{teaserfigure}
+%  \includegraphics[width=\textwidth]{sampleteaser}
+%  \caption{Seattle Mariners at Spring Training, 2010.}
+%  \label{fig:teaser}
+%\end{teaserfigure}
+
+\maketitle
+
+\input{report-chapters}
+
+%% The next two lines define the bibliography style to be used, and
+%% the bibliography file.
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{report-bibliography}
+
+\end{document}
+\endinput
