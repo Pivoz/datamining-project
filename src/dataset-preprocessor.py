@@ -6,8 +6,11 @@ import time
 import nltk
 import ntpath
 import threading
+import multiprocessing
 from atpbar import flush
 from atpbar import atpbar
+import ctypes
+
 
 class ProcessDatasetThread(threading.Thread):
     def __init__(self, dataset, start, end, debug):
@@ -24,7 +27,8 @@ class ProcessDatasetThread(threading.Thread):
         if self.debug:
             self.debugResult = []
 
-        self.bar = atpbar(range(self.endIndex - self.startIndex + 1), name="Thread {}".format(int(self.startIndex / (self.endIndex+1 - self.startIndex))))
+        self.bar = atpbar(range(self.endIndex - self.startIndex + 1),
+                          name="Thread {}".format(int(self.startIndex / (self.endIndex + 1 - self.startIndex))))
         iterator = iter(self.bar)
 
         # Main processing
@@ -52,12 +56,18 @@ class ProcessDatasetThread(threading.Thread):
             if self.debug:
                 deleted_text = []
 
+            # Check if words are considerable
             for items in data:
                 for item in items:
                     if is_word_considerable(item):
                         text_bucket.append(item[0].lower())
                     elif self.debug:
                         deleted_text.append(item[0])
+
+            # Check if there are doubled words inside text_bucket
+            for text in text_bucket:
+                if (text_bucket.count(text) > 1):
+                    text_bucket.remove(text)
 
             row['text'] = text_bucket
 
@@ -88,7 +98,7 @@ class ProcessDatasetThread(threading.Thread):
             del self.debugResult
 
     def getDebugResult(self):
-        if self.debug == False:
+        if self.debug == False or self.isDone == False:
             return None
 
         return self.debugResult
@@ -97,6 +107,8 @@ class ProcessDatasetThread(threading.Thread):
 """
 This function returns true if the provided string is an integer. False otherwise
 """
+
+
 def is_integer(n):
     try:
         float(n)
@@ -105,10 +117,13 @@ def is_integer(n):
     else:
         return float(n).is_integer()
 
+
 """
 This function acts as a word filter. It returns true only if the passed string contained in word_tuple[0]
-is usefull in the next stage of the project. Otherwise, it will return false
+is useful in the next stage of the project. Otherwise, it will return false
 """
+
+
 def is_word_considerable(word_tuple):
     # If it's not a noun nor an adjective -> discard
     if not word_tuple[1].startswith("N") and not word_tuple[1].startswith("J"):
@@ -132,6 +147,8 @@ def is_word_considerable(word_tuple):
 """
 This function returns the filename without extension
 """
+
+
 def getFilename(path):
     head, tail = ntpath.split(path)
     filename = tail or ntpath.basename(head)
@@ -143,9 +160,12 @@ def getFilename(path):
 This function delete from the input dataset all those columns that are useless.
 It keeps only the columns ['date', 'text']
 """
+
+
 def deleteUselessColumns(dataset):
     dataset_columns = dataset.columns.tolist()
 
+    # Delete frp, the list of column names those columns I NEED
     dataset_columns.remove('text')
     dataset_columns.remove("date")
 
@@ -158,8 +178,6 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4):
 
     # Reading the CSV dataset
     dataset = pd.read_csv(dataset_path)
-    # dataset = pd.read_csv(dataset_path, quoting=csv.QUOTE_NONE,  error_bad_lines=False)
-    # dataset = pd.read_csv(dataset_path, quotechar='"', quoting=csv.QUOTE_NONE, error_bad_lines=False)
 
     # Delete useless columns
     dataset = deleteUselessColumns(dataset)
@@ -199,6 +217,9 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4):
     flush()
 
     # Save the preprocessed dataset
+    print()
+    print(" --- Merging partial results ---")
+
     filename = getFilename(dataset_path)
     newDataset = pd.DataFrame(result)
     newDataset.to_csv("{}_preprocessed.csv".format(filename), index=False, header=False)
@@ -207,7 +228,8 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4):
         debug_df = pd.DataFrame(debugResult)
         debug_df.to_csv("{}_debug_cut.csv".format(filename), index=False, header=False)
 
-    print("--- Data preprocessing completed in {} seconds ---".format(time.process_time() - start))
+    time.sleep(2)
+    print("--- Data preprocessing completed in {.2f} seconds ---".format(time.process_time()-start))
 
 
 if __name__ == "__main__":
@@ -226,7 +248,6 @@ if __name__ == "__main__":
     nThreads = 4
 
     for i in range(2, len(sys.argv)):
-        print("Checking position {}, value = {}".format(i, sys.argv[i]))
         if sys.argv[i] == "--debug":
             DEBUG = True
             print("--- Preprocessor executed in DEBUG mode ---")
@@ -235,8 +256,15 @@ if __name__ == "__main__":
             nltk.download("averaged_perceptron_tagger")
             print("--- Downloaded nltk dependencies ---")
         elif sys.argv[i] == "--threads":
-            if len(sys.argv) > i and is_integer(sys.argv[i+1]):
-                nThreads = int(sys.argv[i+1])
+            if len(sys.argv) > i and is_integer(sys.argv[i + 1]):
+                nThreads = int(sys.argv[i + 1])
 
-    print("Dataset preprocessor started with the following parameters:\n\t> dataset_path = {}\n\t> DEBUG = {}\n\t> nThreads = {}\n\n".format(dataset_path, DEBUG, nThreads))
+    # Fix terminal prints in windows for escape sequences used in atpbar
+    if sys.platform.startswith("win"):
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+
+    print(
+        "Dataset preprocessor started with the following parameters:\n\t> dataset_path = {}\n\t> DEBUG = {}\n\t> nThreads = {}\n\n".format(
+            dataset_path, DEBUG, nThreads))
     processDataset(dataset_path, DEBUG=DEBUG, nThreads=nThreads)
