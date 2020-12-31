@@ -6,35 +6,32 @@ import time
 import nltk
 import ntpath
 import threading
-import multiprocessing
-from atpbar import flush
-from atpbar import atpbar
+from atpbar import atpbar, flush
 import ctypes
+import re
 
 
 class ProcessDatasetThread(threading.Thread):
-    def __init__(self, dataset, start, end, debug):
+    def __init__(self, dataset, start, end, aliases, debug):
         super().__init__()
 
         self.dataset = dataset
         self.startIndex = start
         self.endIndex = end
+        self.aliasMap = aliases
         self.debug = debug
 
-    def run(self):
         self.result = []
         self.isDone = False
         if self.debug:
             self.debugResult = []
 
-        self.bar = atpbar(range(self.endIndex - self.startIndex + 1),
-                          name="Thread {}".format(int(self.startIndex / (self.endIndex + 1 - self.startIndex))))
-        iterator = iter(self.bar)
+    def run(self):
+        bar = atpbar(range(self.endIndex - self.startIndex + 1), name="Thread {}".format(int(self.startIndex / (self.endIndex + 1 - self.startIndex))))
+        iterator = iter(bar)
 
         # Main processing
         for index, row in self.dataset.iterrows():
-
-            # print("INDEX = -{}-\nROW[date] = -{}-\nROW[text] = -{}-".format(index, row[0], row[1]))
 
             if index < self.startIndex:
                 continue
@@ -59,14 +56,14 @@ class ProcessDatasetThread(threading.Thread):
             # Check if words are considerable
             for items in data:
                 for item in items:
-                    if is_word_considerable(item):
-                        text_bucket.append(item[0].lower())
+                    if self.is_word_considerable(item):
+                        text_bucket.append(self.wordFilter(item[0]))
                     elif self.debug:
                         deleted_text.append(item[0])
 
-            # Check if there are doubled words inside text_bucket
+            # Check if there are doubled words inside text_bucket or if it is an empty string
             for text in text_bucket:
-                if (text_bucket.count(text) > 1):
+                if text == "" or text_bucket.count(text) > 1:
                     text_bucket.remove(text)
 
             row['text'] = text_bucket
@@ -79,12 +76,12 @@ class ProcessDatasetThread(threading.Thread):
             try:
                 next(iterator)
             except Exception:
-                continue
+                pass
 
         self.isDone = True
 
     def getResults(self):
-        if self.isDone == False:
+        if not self.isDone:
             return None
 
         return self.result
@@ -98,17 +95,81 @@ class ProcessDatasetThread(threading.Thread):
             del self.debugResult
 
     def getDebugResult(self):
-        if self.debug == False or self.isDone == False:
+        if not self.debug or not self.isDone:
             return None
 
         return self.debugResult
+
+    """
+    This function filters the input word in order to remove all possible junk chars
+    """
+    def wordFilter(self, word):
+
+        # Lowercase the word
+        word = word.lower()
+
+        # Remove all the emojis
+        regrex_pattern = re.compile(pattern="["
+                                        u"\U0001F600-\U0001F64F"  # emoticons
+                                        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                                        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                                        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                                        u"\U00002500-\U00002BEF"  # chinese char
+                                        u"\U00002702-\U000027B0"
+                                        u"\U00002702-\U000027B0"
+                                        u"\U000024C2-\U0001F251"
+                                        u"\U0001f926-\U0001f937"
+                                        u"\U00010000-\U0010ffff"
+                                        u"\u2640-\u2642" 
+                                        u"\u2600-\u2B55"
+                                        u"\u200d"
+                                        u"\u23cf"
+                                        u"\u23e9"
+                                        u"\u231a"
+                                        u"\ufe0f"  # dingbats
+                                        u"\u3030"
+                                        "]+", flags=re.UNICODE)
+        word = regrex_pattern.sub(r'', word)
+
+        # TO KEEP AS A FINAL CHECK: Find if word has a more general alias in aliasMap
+        try:
+            word = self.aliasMap[word]
+        except KeyError:
+            pass
+
+        return word
+
+    """
+    This function acts as a word decision filter. It returns true only if the passed string contained in word_tuple[0]
+    is useful in the next stage of the project. Otherwise, it will return false
+    """
+    def is_word_considerable(self, word_tuple):
+        # If it's not a noun nor an adjective -> discard
+        if not word_tuple[1].startswith("N") and not word_tuple[1].startswith("J"):
+            return False
+
+        # If it contains some kind of chars -> discard
+        if word_tuple[0].__contains__("/"):
+            return False
+
+        # If it has only one character (e.g., "@", "#")
+        if len(word_tuple[0]) == 1:
+            return False
+
+        # Manual check ('https' is considered a noun)
+        if word_tuple[0] == "https":
+            return False
+
+        # If ends with unicode HORIZONTAL ELLIPSIS char -> truncated word inside the dataset -> useless
+        if word_tuple[0].__contains__(u"\u2026"):
+            return False
+
+        return True
 
 
 """
 This function returns true if the provided string is an integer. False otherwise
 """
-
-
 def is_integer(n):
     try:
         float(n)
@@ -119,36 +180,8 @@ def is_integer(n):
 
 
 """
-This function acts as a word filter. It returns true only if the passed string contained in word_tuple[0]
-is useful in the next stage of the project. Otherwise, it will return false
-"""
-
-
-def is_word_considerable(word_tuple):
-    # If it's not a noun nor an adjective -> discard
-    if not word_tuple[1].startswith("N") and not word_tuple[1].startswith("J"):
-        return False
-
-    # If it contains some kind of chars -> discard
-    if word_tuple[0].__contains__("/"):
-        return False
-
-    # If it has only one character (e.g., "@", "#")
-    if len(word_tuple[0]) == 1:
-        return False
-
-    # Manual check ('https' is considered a noun)
-    if word_tuple[0] == "https":
-        return False
-
-    return True
-
-
-"""
 This function returns the filename without extension
 """
-
-
 def getFilename(path):
     head, tail = ntpath.split(path)
     filename = tail or ntpath.basename(head)
@@ -160,8 +193,6 @@ def getFilename(path):
 This function delete from the input dataset all those columns that are useless.
 It keeps only the columns ['date', 'text']
 """
-
-
 def deleteUselessColumns(dataset):
     dataset_columns = dataset.columns.tolist()
 
@@ -173,7 +204,7 @@ def deleteUselessColumns(dataset):
     return dataset
 
 
-def processDataset(dataset_path, DEBUG=False, nThreads=4):
+def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
     start = time.process_time()
 
     # Reading the CSV dataset
@@ -194,7 +225,7 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4):
         if i == nThreads:
             end = nRows
 
-        thread = ProcessDatasetThread(dataset, start, end, DEBUG)
+        thread = ProcessDatasetThread(dataset, start, end, aliases, DEBUG)
 
         thread.start()
         threads.append(thread)
@@ -228,11 +259,12 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4):
         debug_df = pd.DataFrame(debugResult)
         debug_df.to_csv("{}_debug_cut.csv".format(filename), index=False, header=False)
 
-    time.sleep(2)
-    print("--- Data preprocessing completed in {.2f} seconds ---".format(time.process_time()-start))
+    print("--- Data preprocessing completed in {} seconds ---".format(time.process_time()-start))
 
 
 if __name__ == "__main__":
+
+    ALIAS_PATH = "./utils/preprocessor-alias.csv"
 
     # Parsing inline parameters
     if len(sys.argv) <= 1:
@@ -242,6 +274,13 @@ if __name__ == "__main__":
     if not os.path.exists(sys.argv[1]):
         sys.stderr.write("ERROR: the provided dataset file does not exist")
         exit(2)
+
+    # Read the alias csv file
+    alias = pd.read_csv(ALIAS_PATH)
+    aliasMap = {}
+    for index, row in alias.iterrows():
+        aliasMap[row["from"]] = row["to"]
+    print("--- Read {} aliases from {} file ---".format(len(aliasMap.keys()), ALIAS_PATH))
 
     dataset_path = sys.argv[1]
     DEBUG = False
@@ -267,4 +306,4 @@ if __name__ == "__main__":
     print(
         "Dataset preprocessor started with the following parameters:\n\t> dataset_path = {}\n\t> DEBUG = {}\n\t> nThreads = {}\n\n".format(
             dataset_path, DEBUG, nThreads))
-    processDataset(dataset_path, DEBUG=DEBUG, nThreads=nThreads)
+    processDataset(dataset_path, DEBUG=DEBUG, nThreads=nThreads, aliases=aliasMap)
