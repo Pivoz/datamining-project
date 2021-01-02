@@ -2,14 +2,12 @@ import pandas as pd
 import sys
 import os
 from datetime import datetime
-import time
 import nltk
 import ntpath
 import threading
 from atpbar import atpbar, flush
 import ctypes
 import re
-
 
 class ProcessDatasetThread(threading.Thread):
     def __init__(self, dataset, start, end, aliases, debug):
@@ -57,14 +55,22 @@ class ProcessDatasetThread(threading.Thread):
             for items in data:
                 for item in items:
                     if self.is_word_considerable(item):
-                        text_bucket.append(self.wordFilter(item[0]))
+                        splitWords = self.wordFilter(item[0])
+                        for split in splitWords:
+                            text_bucket.append(split)
                     elif self.debug:
                         deleted_text.append(item[0])
 
             # Check if there are doubled words inside text_bucket or if it is an empty string
-            for text in text_bucket:
-                if text == "" or text_bucket.count(text) > 1:
-                    text_bucket.remove(text)
+            temp = []
+            for i in range(len(text_bucket)):
+                text = text_bucket[i]
+                if len(text) > 1 and text_bucket.count(text) == 1:
+                    temp.append(text)
+                elif text_bucket.count(text) > 1:
+                    text_bucket[i] = ""
+
+            text_bucket = temp
 
             row['text'] = text_bucket
 
@@ -109,35 +115,56 @@ class ProcessDatasetThread(threading.Thread):
         word = word.lower()
 
         # Remove all the emojis
-        regrex_pattern = re.compile(pattern="["
-                                        u"\U0001F600-\U0001F64F"  # emoticons
-                                        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                                        u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                                        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                                        u"\U00002500-\U00002BEF"  # chinese char
-                                        u"\U00002702-\U000027B0"
-                                        u"\U00002702-\U000027B0"
-                                        u"\U000024C2-\U0001F251"
-                                        u"\U0001f926-\U0001f937"
-                                        u"\U00010000-\U0010ffff"
-                                        u"\u2640-\u2642" 
-                                        u"\u2600-\u2B55"
-                                        u"\u200d"
-                                        u"\u23cf"
-                                        u"\u23e9"
-                                        u"\u231a"
-                                        u"\ufe0f"  # dingbats
-                                        u"\u3030"
-                                        "]+", flags=re.UNICODE)
-        word = regrex_pattern.sub(r'', word)
+        word = self.deEmojify(word)
+
+        # Substitute all non-alphanumeric chars with a blank
+        filteredWord = ""
+        for char in word:
+            if str.isalnum(char):
+                filteredWord += char
+            else:
+                filteredWord += " "
+        word = filteredWord
+
+        # With the above operations, there is the possibility that a word can be split in two or more words wrt the blank char
+        wordsList = word.split(" ")
+
+        # Cleaning the new list from empty or single-char strings or if it is a number
+        for text in wordsList:
+            if len(text) <= 1 or text.isnumeric():
+                wordsList.remove(text)
 
         # TO KEEP AS A FINAL CHECK: Find if word has a more general alias in aliasMap
-        try:
-            word = self.aliasMap[word]
-        except KeyError:
-            pass
+        for i in range(len(wordsList)):
+            try:
+                wordsList[i] = self.aliasMap[wordsList[i]]
+            except KeyError:
+                pass
 
-        return word
+        return wordsList
+
+    def deEmojify(self, text):
+        regrex_pattern = re.compile(pattern="["
+                                            u"\U0001F600-\U0001F64F"  # emoticons
+                                            u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                                            u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                                            u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                                            u"\U00002500-\U00002BEF"  # chinese char
+                                            u"\U00002702-\U000027B0"
+                                            u"\U00002702-\U000027B0"
+                                            u"\U000024C2-\U0001F251"
+                                            u"\U0001f926-\U0001f937"
+                                            u"\U00010000-\U0010ffff"
+                                            u"\u2640-\u2642"
+                                            u"\u2600-\u2B55"
+                                            u"\u200d"
+                                            u"\u23cf"
+                                            u"\u23e9"
+                                            u"\u231a"
+                                            u"\ufe0f"  # dingbats
+                                            u"\u3030"
+                                            "]+", flags=re.UNICODE)
+        return regrex_pattern.sub(r'', text)
 
     """
     This function acts as a word decision filter. It returns true only if the passed string contained in word_tuple[0]
@@ -152,7 +179,7 @@ class ProcessDatasetThread(threading.Thread):
         if word_tuple[0].__contains__("/"):
             return False
 
-        # If it has only one character (e.g., "@", "#")
+        # If it has only one char (e.g., "@", "#", "a")
         if len(word_tuple[0]) == 1:
             return False
 
@@ -162,6 +189,10 @@ class ProcessDatasetThread(threading.Thread):
 
         # If ends with unicode HORIZONTAL ELLIPSIS char -> truncated word inside the dataset -> useless
         if word_tuple[0].__contains__(u"\u2026"):
+            return False
+
+        # If it is a number
+        if word_tuple[0].isnumeric():
             return False
 
         return True
@@ -203,9 +234,11 @@ def deleteUselessColumns(dataset):
     dataset = dataset.drop(dataset_columns, axis=1)
     return dataset
 
+def customCompare(item):
+    return int(item[0])
+
 
 def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
-    start = time.process_time()
 
     # Reading the CSV dataset
     dataset = pd.read_csv(dataset_path)
@@ -230,7 +263,7 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
         thread.start()
         threads.append(thread)
 
-    # Merging partial results
+    # Collecting partial results
     result = []
     if DEBUG:
         debugResult = []
@@ -238,7 +271,7 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
     for i in range(nThreads):
         threads[i].join()
 
-        result = result + threads[i].getResults()
+        result = result + (threads[i].getResults())
 
         if DEBUG:
             debugResult = debugResult + threads[i].getDebugResult()
@@ -247,10 +280,12 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
 
     flush()
 
-    # Save the preprocessed dataset
     print()
-    print(" --- Merging partial results ---")
+    print("--- Sorting the partial results ---")
+    result.sort(key=customCompare)
 
+    # Save the preprocessed dataset
+    print("--- Saving the results ---")
     filename = getFilename(dataset_path)
     newDataset = pd.DataFrame(result)
     newDataset.to_csv("{}_preprocessed.csv".format(filename), index=False, header=False)
@@ -259,7 +294,7 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
         debug_df = pd.DataFrame(debugResult)
         debug_df.to_csv("{}_debug_cut.csv".format(filename), index=False, header=False)
 
-    print("--- Data preprocessing completed in {} seconds ---".format(time.process_time()-start))
+    print("--- Data preprocessing completed ---")
 
 
 if __name__ == "__main__":
@@ -304,6 +339,6 @@ if __name__ == "__main__":
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
     print(
-        "Dataset preprocessor started with the following parameters:\n\t> dataset_path = {}\n\t> DEBUG = {}\n\t> nThreads = {}\n\n".format(
+        "Dataset preprocessor started with the following parameters:\n\t> dataset_path = {}\n\t> DEBUG = {}\n\t> nThreads = {}\n".format(
             dataset_path, DEBUG, nThreads))
     processDataset(dataset_path, DEBUG=DEBUG, nThreads=nThreads, aliases=aliasMap)
