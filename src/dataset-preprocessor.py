@@ -65,10 +65,9 @@ class ProcessDatasetThread(threading.Thread):
             temp = []
             for i in range(len(text_bucket)):
                 text = text_bucket[i]
-                if len(text) > 1 and text_bucket.count(text) == 1:
+                if len(text) > 1 and text_bucket.count(text) == 1 and not text.isnumeric():
                     temp.append(text)
-                elif text_bucket.count(text) > 1:
-                    text_bucket[i] = ""
+                text_bucket[i] = ""
 
             text_bucket = temp
 
@@ -171,8 +170,8 @@ class ProcessDatasetThread(threading.Thread):
     is useful in the next stage of the project. Otherwise, it will return false
     """
     def is_word_considerable(self, word_tuple):
-        # If it's not a noun nor an adjective -> discard
-        if not word_tuple[1].startswith("N") and not word_tuple[1].startswith("J"):
+        # If it's not a noun nor an adjective nor a past verb -> discard
+        if not word_tuple[1].startswith("N") and not word_tuple[1].startswith("J") and not word_tuple[1] == "VBD":
             return False
 
         # If it contains some kind of chars -> discard
@@ -234,10 +233,15 @@ def deleteUselessColumns(dataset):
     dataset = dataset.drop(dataset_columns, axis=1)
     return dataset
 
+"""
+Utility function used to sort the result list to indicate the timestamp as ordering parameter
+"""
 def customCompare(item):
     return int(item[0])
 
-
+"""
+Fuction invoked to process the given dataset
+"""
 def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
 
     # Reading the CSV dataset
