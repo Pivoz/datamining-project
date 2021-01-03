@@ -296,7 +296,7 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
 
     if DEBUG:
         debug_df = pd.DataFrame(debugResult)
-        debug_df.to_csv("{}_debug_cut.csv".format(filename), index=False, header=False)
+        debug_df.to_csv("{}_debug.csv".format(filename), index=False, header=False)
 
     print("--- Data preprocessing completed ---")
 
