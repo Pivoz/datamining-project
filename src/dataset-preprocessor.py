@@ -38,7 +38,7 @@ class ProcessDatasetThread(threading.Thread):
 
             # Date manipulation
             datetime_obj = datetime.strptime(row['date'], '%Y-%m-%d %H:%M:%S')
-            row['date'] = int(datetime.timestamp(datetime_obj))
+            computedTimestamp = int(datetime.timestamp(datetime_obj))
 
             # Text manipulation
             words = nltk.sent_tokenize(row['text'])
@@ -71,11 +71,9 @@ class ProcessDatasetThread(threading.Thread):
 
             text_bucket = temp
 
-            row['text'] = text_bucket
-
-            self.result.append([row['date'], row['text']])
+            self.result.append([computedTimestamp, text_bucket])
             if self.debug:
-                self.debugResult.append([row['date'], deleted_text])
+                self.debugResult.append([computedTimestamp, deleted_text])
 
             # Let progress bar to increase
             try:
@@ -319,8 +317,8 @@ if __name__ == "__main__":
     aliasMap = {}
     for index, row in alias.iterrows():
         aliasMap[row["from"]] = row["to"]
-    print("--- Read {} aliases from {} file ---".format(len(aliasMap.keys()), ALIAS_PATH))
 
+    # Parsing parameters
     dataset_path = sys.argv[1]
     DEBUG = False
     nThreads = 4
@@ -342,7 +340,8 @@ if __name__ == "__main__":
         kernel32 = ctypes.windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
+    # Start processing the dataset
     print(
-        "Dataset preprocessor started with the following parameters:\n\t> dataset_path = {}\n\t> DEBUG = {}\n\t> nThreads = {}\n".format(
-            dataset_path, DEBUG, nThreads))
+        "Dataset preprocessor started with the following parameters:\n\t> dataset_path = {}\n\t> DEBUG = {}\n\t> nThreads = {}\n\t> Alias path = {}\n\t> N. aliases read = {}\n".format(
+            dataset_path, DEBUG, nThreads, ALIAS_PATH, len(aliasMap.keys())))
     processDataset(dataset_path, DEBUG=DEBUG, nThreads=nThreads, aliases=aliasMap)
