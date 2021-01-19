@@ -1,21 +1,23 @@
 import os
 import sys
+import json
 
-DATASET_PATH = "../dataset/covid19_tweets.csv"
-THREADS = 4
-INSTALL_NLTK_LIB = False    # Set to True to install the libraries before the core execution
-DEBUG = False               # Set to True to save also all the discarded words from the input dataset
+if __name__ == "__main__":
+    try:
+        with open("./preprocessorSettings.json") as settings:
+            data = json.load(settings)
+            command = "cd ../src && python3 dataset-preprocessor.py {}".format(data["dataset_relative_path"])
 
-if not (len(sys.argv) > 1 and sys.argv[1] == "--development"):
-    if not os.path.exists(DATASET_PATH):
-        sys.stderr.write("ERROR: the dataset file does not exist (path: {})\n".format(DATASET_PATH))
-        sys.stderr.write("Download it and re-run this script\n")
-        exit(1)
+            if "threads" in data.keys():
+                command += " --threads {}".format(data["threads"])
+            if "install_nltk_lib" in data.keys() and data["install_nltk_lib"]:
+                command += " --install"
+            if "debug" in data.keys() and data["debug"]:
+                command += " --debug"
+                print("RUNNING COMMAND: ", command, "\n")
 
-command = "cd ../src && python3 dataset-preprocessor.py {} --threads {}".format(DATASET_PATH, THREADS)
-if INSTALL_NLTK_LIB:
-    command += " --install"
-if DEBUG:
-    command += " --debug"
-
-os.system(command)
+            os.system(command)
+    except KeyError:
+        sys.stderr.write("ERROR: Some required fields not found in the settings file\n")
+    except FileNotFoundError:
+        sys.stderr.write("ERROR: the settings file has not been found\n")

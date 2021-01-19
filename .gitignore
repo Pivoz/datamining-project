@@ -134,3 +134,4 @@ dmypy.json
 # Custom files
 dataset/*.csv
 src/*.csv
+src/*.txt

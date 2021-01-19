@@ -10,9 +10,10 @@ import ctypes
 import re
 
 class ProcessDatasetThread(threading.Thread):
-    def __init__(self, dataset, start, end, aliases, debug):
+    def __init__(self, id, dataset, start, end, aliases, debug):
         super().__init__()
 
+        self.id = id
         self.dataset = dataset
         self.startIndex = start
         self.endIndex = end
@@ -25,7 +26,7 @@ class ProcessDatasetThread(threading.Thread):
             self.debugResult = []
 
     def run(self):
-        bar = atpbar(range(self.endIndex - self.startIndex + 1), name="Thread {}".format(int(self.startIndex / (self.endIndex + 1 - self.startIndex))))
+        bar = atpbar(range(self.endIndex - self.startIndex + 1), name="Thread {}".format(self.id))
         iterator = iter(bar)
 
         # Main processing
@@ -37,8 +38,16 @@ class ProcessDatasetThread(threading.Thread):
                 break
 
             # Date manipulation
-            datetime_obj = datetime.strptime(row['date'], '%Y-%m-%d %H:%M:%S')
-            computedTimestamp = int(datetime.timestamp(datetime_obj))
+            try:
+                datetime_obj = datetime.strptime(row['date'], '%Y-%m-%d %H:%M:%S')
+                computedTimestamp = int(datetime.timestamp(datetime_obj))
+            except ValueError:
+                # Used in tweets_sentiment_analysis dataset
+                split = row["date"].split(" ")
+                newDate = "{}-{}-{} {}".format(split[5], self.getMonth(split[1].lower()), split[2], split[3])
+
+                datetime_obj = datetime.strptime(newDate, '%Y-%m-%d %H:%M:%S')
+                computedTimestamp = int(datetime.timestamp(datetime_obj))
 
             # Text manipulation
             words = nltk.sent_tokenize(row['text'])
@@ -102,6 +111,14 @@ class ProcessDatasetThread(threading.Thread):
             return None
 
         return self.debugResult
+
+    def getMonth(self, str):
+        months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+        for i in range(len(months)):
+            if months[i] == str:
+                return i + 1
+
+        return 12   # December
 
     """
     This function filters the input word in order to remove all possible junk chars
@@ -243,7 +260,10 @@ Fuction invoked to process the given dataset
 def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
 
     # Reading the CSV dataset
-    dataset = pd.read_csv(dataset_path)
+    try:
+        dataset = pd.read_csv(dataset_path)
+    except Exception:
+        dataset = pd.read_csv(dataset_path, encoding='latin-1')
 
     # Delete useless columns
     dataset = deleteUselessColumns(dataset)
@@ -260,7 +280,7 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
         if i == nThreads:
             end = nRows
 
-        thread = ProcessDatasetThread(dataset, start, end, aliases, DEBUG)
+        thread = ProcessDatasetThread(int(i)+1, dataset, start, end, aliases, DEBUG)
 
         thread.start()
         threads.append(thread)
@@ -326,7 +346,6 @@ if __name__ == "__main__":
     for i in range(2, len(sys.argv)):
         if sys.argv[i] == "--debug":
             DEBUG = True
-            print("--- Preprocessor executed in DEBUG mode ---")
         elif sys.argv[i] == "--install":
             nltk.download("punkt")
             nltk.download("averaged_perceptron_tagger")

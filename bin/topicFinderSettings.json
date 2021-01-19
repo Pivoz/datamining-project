@@ -1,0 +1,10 @@
+{
+  "dataset_relative_path": "../src/tweets_sentiment_analysis_preprocessed.csv",
+  "timespan": 1,
+  "timeunit": "day",
+  "timespan_threshold": 50,
+  "global_threshold": 10,
+  "debug": true,
+  "max_topics_to_show": "100000",
+  "processes": 4
+}
