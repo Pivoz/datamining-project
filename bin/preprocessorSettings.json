@@ -1,6 +1,6 @@
 {
   "dataset_relative_path": "../dataset/covid19_tweets.csv",
-  "threads": 6,
+  "processes": 5,
   "debug": false,
   "download_nltk_lib": false
 }

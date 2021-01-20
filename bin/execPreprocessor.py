@@ -8,8 +8,8 @@ if __name__ == "__main__":
             data = json.load(settings)
             command = "cd ../src && python3 dataset-preprocessor.py {}".format(data["dataset_relative_path"])
 
-            if "threads" in data.keys():
-                command += " --threads {}".format(data["threads"])
+            if "processes" in data.keys():
+                command += " --processes {}".format(data["processes"])
             if "install_nltk_lib" in data.keys() and data["install_nltk_lib"]:
                 command += " --install"
             if "debug" in data.keys() and data["debug"]:

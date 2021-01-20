@@ -4,38 +4,34 @@ import os
 from datetime import datetime
 import nltk
 import ntpath
-import threading
-from atpbar import atpbar, flush
+from atpbar import atpbar, flush, find_reporter, register_reporter
 import ctypes
 import re
+import multiprocessing
 
-class ProcessDatasetThread(threading.Thread):
-    def __init__(self, id, dataset, start, end, aliases, debug):
+class DatasetProcessor(multiprocessing.Process):
+    def __init__(self, id, dataset, aliases, debug, pipe, bar_reporter):
         super().__init__()
 
         self.id = id
         self.dataset = dataset
-        self.startIndex = start
-        self.endIndex = end
         self.aliasMap = aliases
         self.debug = debug
-
-        self.result = []
-        self.isDone = False
-        if self.debug:
-            self.debugResult = []
+        self.pipe = pipe
+        self.bar_reporter = bar_reporter
 
     def run(self):
-        bar = atpbar(range(self.endIndex - self.startIndex + 1), name="Thread {}".format(self.id))
+        register_reporter(self.bar_reporter)
+        nRows = len(self.dataset.index)
+
+        bar = atpbar(range(nRows), name="Process {}".format(self.id))
         iterator = iter(bar)
+
+        result = []
+        debugResult = []
 
         # Main processing
         for index, row in self.dataset.iterrows():
-
-            if index < self.startIndex:
-                continue
-            elif index > self.endIndex:
-                break
 
             # Date manipulation
             try:
@@ -57,8 +53,7 @@ class ProcessDatasetThread(threading.Thread):
                 data.append(nltk.pos_tag(nltk.word_tokenize(word)))
 
             text_bucket = []
-            if self.debug:
-                deleted_text = []
+            deleted_text = []
 
             # Check if words are considerable
             for items in data:
@@ -80,9 +75,9 @@ class ProcessDatasetThread(threading.Thread):
 
             text_bucket = temp
 
-            self.result.append([computedTimestamp, text_bucket])
+            result.append([computedTimestamp, text_bucket])
             if self.debug:
-                self.debugResult.append([computedTimestamp, deleted_text])
+                debugResult.append([computedTimestamp, deleted_text])
 
             # Let progress bar to increase
             try:
@@ -90,27 +85,18 @@ class ProcessDatasetThread(threading.Thread):
             except Exception:
                 pass
 
-        self.isDone = True
+        # Final bar increase
+        try:
+            next(iterator)
+        except Exception:
+            pass
 
-    def getResults(self):
-        if not self.isDone:
-            return None
-
-        return self.result
-
-    def releaseListMemory(self):
-        del self.result[:]
-        del self.result
-
+        # Send results in the process pipe
+        self.pipe.send(result)
         if self.debug:
-            del self.debugResult[:]
-            del self.debugResult
+            self.pipe.send(debugResult)
 
-    def getDebugResult(self):
-        if not self.debug or not self.isDone:
-            return None
-
-        return self.debugResult
+        self.pipe.close()
 
     def getMonth(self, str):
         months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
@@ -211,7 +197,6 @@ class ProcessDatasetThread(threading.Thread):
 
         return True
 
-
 """
 This function returns true if the provided string is an integer. False otherwise
 """
@@ -257,7 +242,7 @@ def customCompare(item):
 """
 Fuction invoked to process the given dataset
 """
-def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
+def processDataset(dataset_path, DEBUG=False, nProcesses=4, aliases=None):
 
     # Reading the CSV dataset
     try:
@@ -271,34 +256,38 @@ def processDataset(dataset_path, DEBUG=False, nThreads=4, aliases=None):
     # Start the multithreading processing
     nRows = len(dataset.index)
     print("--- Processing {} entries ---".format(nRows))
+    bar_reporter = find_reporter()
 
-    threads = []
-    for i in range(nThreads):
+    processes = []
+    pipes = []
+    for i in range(nProcesses):
 
-        start = int((nRows / nThreads) * i)
-        end = int((nRows / nThreads) * (i + 1) - 1)
-        if i == nThreads:
+        start = int((nRows / nProcesses) * i)
+        end = int((nRows / nProcesses) * (i + 1) - 1)
+        if i == nProcesses:
             end = nRows
 
-        thread = ProcessDatasetThread(int(i)+1, dataset, start, end, aliases, DEBUG)
+        parent_pipe, child_pipe = multiprocessing.Pipe()
 
-        thread.start()
-        threads.append(thread)
+        process = DatasetProcessor(int(i)+1, dataset.iloc[start:end+1], aliases, DEBUG, child_pipe, bar_reporter)
+
+        process.start()
+        processes.append(process)
+        pipes.append(parent_pipe)
+
+    # Release memory
+    del dataset
 
     # Collecting partial results
     result = []
-    if DEBUG:
-        debugResult = []
+    debugResult = []
 
-    for i in range(nThreads):
-        threads[i].join()
-
-        result = result + (threads[i].getResults())
-
+    for i in range(nProcesses):
+        result = result + pipes[i].recv()
         if DEBUG:
-            debugResult = debugResult + threads[i].getDebugResult()
+            debugResult = debugResult + pipes[i].recv()
 
-        threads[i].releaseListMemory()
+        processes[i].join()
 
     flush()
 
@@ -341,7 +330,7 @@ if __name__ == "__main__":
     # Parsing parameters
     dataset_path = sys.argv[1]
     DEBUG = False
-    nThreads = 4
+    nProcesses = 4
 
     for i in range(2, len(sys.argv)):
         if sys.argv[i] == "--debug":
@@ -350,9 +339,9 @@ if __name__ == "__main__":
             nltk.download("punkt")
             nltk.download("averaged_perceptron_tagger")
             print("--- Downloaded nltk dependencies ---")
-        elif sys.argv[i] == "--threads":
+        elif sys.argv[i] == "--processes":
             if len(sys.argv) > i and is_integer(sys.argv[i + 1]):
-                nThreads = int(sys.argv[i + 1])
+                nProcesses = int(sys.argv[i + 1])
 
     # Fix terminal prints in windows for escape sequences used in atpbar
     if sys.platform.startswith("win"):
@@ -361,6 +350,6 @@ if __name__ == "__main__":
 
     # Start processing the dataset
     print(
-        "Dataset preprocessor started with the following parameters:\n\t> dataset_path = {}\n\t> DEBUG = {}\n\t> nThreads = {}\n\t> Alias path = {}\n\t> N. aliases read = {}\n".format(
-            dataset_path, DEBUG, nThreads, ALIAS_PATH, len(aliasMap.keys())))
-    processDataset(dataset_path, DEBUG=DEBUG, nThreads=nThreads, aliases=aliasMap)
+        "Dataset preprocessor started with the following parameters:\n\t> dataset_path = {}\n\t> DEBUG = {}\n\t> N. processes = {}\n\t> Alias path = {}\n\t> N. aliases read = {}\n".format(
+            dataset_path, DEBUG, nProcesses, ALIAS_PATH, len(aliasMap.keys())))
+    processDataset(dataset_path, DEBUG=DEBUG, nProcesses=nProcesses, aliases=aliasMap)
