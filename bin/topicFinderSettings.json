@@ -2,7 +2,7 @@
   "dataset_relative_path": "../src/covid19_tweets_preprocessed_delivered.csv",
   "timespan": 1,
   "timeunit": "day",
-  "timespan_threshold": 50,
+  "timespan_threshold": 10,
   "global_threshold": 10,
   "debug": true,
   "max_topics_to_show": "100000",

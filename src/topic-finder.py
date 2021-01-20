@@ -8,12 +8,12 @@ import multiprocessing
 import ast
 
 class TimeframeTopicsFinderProcess(multiprocessing.Process):
-    def __init__(self, id, pipe_conn, buckets, timespan_threshold, offset, bar_reporter):
+    def __init__(self, id, pipe_conn, timeframes, timespan_threshold, offset, bar_reporter):
         super().__init__()
 
         self.id = id
         self.pipe_conn = pipe_conn
-        self.buckets = buckets
+        self.timeframes = timeframes
         self.threshold = timespan_threshold
         self.offset = offset
         self.bar_reporter = bar_reporter
@@ -22,17 +22,16 @@ class TimeframeTopicsFinderProcess(multiprocessing.Process):
         final_result = []
         register_reporter(self.bar_reporter)
 
-        for i in range(len(self.buckets)):
-            actual_timeframe_bucket = self.buckets[i]
+        for i in range(len(self.timeframes)):
+            actual_timeframe = self.timeframes[i]
 
             # Create the progress bar - frequent words
-            bar = atpbar(range(1,len(actual_timeframe_bucket)), name="Process {} - Iteration {}/{} - Computing frequent words".format(self.id, i+1, len(self.buckets)))
-            bar_iterator = iter(bar)
+            bar_iterator = iter(atpbar(range(len(actual_timeframe)), name="Process {} - Timeframe {} of {} - Computing frequent words".format(self.id, i+1, len(self.timeframes))))
 
-            # Count single words frequencies
+            # PASS 1 - Count single words frequencies
             words_frequencies = {}
-            for j in range(len(actual_timeframe_bucket)):
-                word_list = ast.literal_eval(actual_timeframe_bucket[j])
+            for j in range(len(actual_timeframe)):
+                word_list = ast.literal_eval(actual_timeframe[j])
 
                 for k in range(len(word_list)):
                     entry = words_frequencies.get(word_list[k], 0)     # 0 as default value
@@ -41,40 +40,41 @@ class TimeframeTopicsFinderProcess(multiprocessing.Process):
                 # Let bar to progress
                 try:
                     next(bar_iterator)
-                except Exception:
+                except StopIteration:
                     pass
 
-            # Remove not frequent words
-            frequent_words = {j:words_frequencies[j] for j in words_frequencies if words_frequencies[j] >= self.threshold}
-            numbered_words = list(frequent_words.keys())
+            # Final bar progress
+            try:
+                next(bar_iterator)
+            except StopIteration:
+                pass
 
-            #if self.id == 1 and i == 0:
-            #    print(frequent_words)
+            # Remove not frequent words and free unused memory
+            frequent_words = {j:words_frequencies[j] for j in words_frequencies if words_frequencies[j] >= self.threshold}
+            frequent_words_list = list(frequent_words.keys())
+            frequent_words_list.sort()
+
+            del words_frequencies
+            del frequent_words
 
             # Allocate triangular matrix
             matrix = []
-            for j in range(len(numbered_words)):
+            for j in range(len(frequent_words_list)):
                 column = []
                 for k in range(j, 0, -1):
                     column.append(0)
                 matrix.append(column)
 
-            #if self.id == 1 and i == 0:
-            #    for j in range(len(matrix)):
-            #        for k in range(len(matrix[j])):
-            #            sys.stdout.write("{}\t".format(matrix[j][k]))
-            #        print()
-
-            # Compute frequent pairs
-            for j in range(len(actual_timeframe_bucket)):
-                tweet = ast.literal_eval(actual_timeframe_bucket[j])
+            # PASS 2 - Compute frequent pairs
+            for j in range(len(actual_timeframe)):
+                tweet = ast.literal_eval(actual_timeframe[j])
 
                 # Generate all the possible pairs
                 for k in range(len(tweet)-1):
                     for l in range(k+1, len(tweet)):
                         try:
-                            first_index = numbered_words.index(tweet[k])
-                            second_index = numbered_words.index(tweet[l])
+                            first_index = frequent_words_list.index(tweet[k])
+                            second_index = frequent_words_list.index(tweet[l])
                         except ValueError:
                             # One of the two words was not considered frequent
                             continue
@@ -97,7 +97,7 @@ class TimeframeTopicsFinderProcess(multiprocessing.Process):
             for j in range(len(matrix)):
                 for k in range(len(matrix[j])):
                     if matrix[j][k] >= self.threshold:
-                        pair = (numbered_words[j], numbered_words[k], matrix[j][k])
+                        pair = (frequent_words_list[j], frequent_words_list[k], matrix[j][k])
                         frequent_pairs.append(pair)
 
             timeframe_entry = (self.offset + i, frequent_pairs)
@@ -122,7 +122,7 @@ def split_dataset_by_timeframe(dataset_path, timespan, timeunit, debug):
     dataset = pd.read_csv(dataset_path, header=None)
     nRows = len(dataset.index)
 
-    barIterator = iter(atpbar(range(1,nRows), name="Split dataset process"))
+    barIterator = iter(atpbar(range(nRows), name="Split dataset process"))
 
     # For debug
     if debug:
@@ -160,10 +160,16 @@ def split_dataset_by_timeframe(dataset_path, timespan, timeunit, debug):
                 debug_file.write("Initial timestamp: \t{} ({})\n".format(actualTimestamp, datetime.fromtimestamp(actualTimestamp)))
 
         # Let proceed the bar
-        try:
+        try :
             next(barIterator)
-        except Exception:
+        except StopIteration:
             pass
+
+    # Final step of the bar
+    try:
+        next(barIterator)
+    except StopIteration:
+        pass
 
     if len(bucket) > 0:
         split_dataset_to_return.append(bucket)
@@ -186,6 +192,23 @@ def check_arguments_values(timespan, timeunit, timespan_threshold, global_thresh
         return False
 
     return True
+
+def dump_frequent_topics(timeframes_topics, filename):
+    file = open(filename, "w")
+
+    for timeframes_set in timeframes_topics:
+        for single_timeframe in timeframes_set:
+            file.write("TIMEFRAME {}\n".format(single_timeframe[0]))
+            for tuple in single_timeframe[1]:
+                to_write = "{} - {} - {}\n".format(tuple[0], tuple[1], tuple[2])
+                try:
+                    file.write(to_write)
+                except Exception:
+                    sys.stderr.write("ERROR WRITING -{}-".format(to_write))
+
+            file.write("\n\n")
+    file.close()
+
 
 if __name__ == "__main__":
     # Inline arguments retrieval
@@ -277,7 +300,10 @@ if __name__ == "__main__":
 
     flush()
 
-    for timeframe_topics_list in frequent_timeframe_topics:
-        for single_timeframe in timeframe_topics_list:
-            print(single_timeframe)
-            print()
+    if debug:
+        dump_frequent_topics(frequent_timeframe_topics, "./frequent_pairs_found.txt")
+
+    #for timeframe_topics_list in frequent_timeframe_topics:
+    #    for single_timeframe in timeframe_topics_list:
+    #        print(single_timeframe)
+    #        print()

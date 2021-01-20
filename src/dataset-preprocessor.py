@@ -8,6 +8,7 @@ from atpbar import atpbar, flush, find_reporter, register_reporter
 import ctypes
 import re
 import multiprocessing
+from unidecode import unidecode
 
 class DatasetProcessor(multiprocessing.Process):
     def __init__(self, id, dataset, aliases, debug, pipe, bar_reporter):
@@ -172,7 +173,7 @@ class DatasetProcessor(multiprocessing.Process):
     """
     def is_word_considerable(self, word_tuple):
         # If it's not a noun nor an adjective nor a past verb -> discard
-        if not word_tuple[1].startswith("N") and not word_tuple[1].startswith("J") and not word_tuple[1] == "VBD":
+        if not word_tuple[1].startswith("N") and not word_tuple[1].startswith("J"):
             return False
 
         # If it contains some kind of chars -> discard
@@ -183,8 +184,8 @@ class DatasetProcessor(multiprocessing.Process):
         if len(word_tuple[0]) == 1:
             return False
 
-        # Manual check ('https' is considered a noun)
-        if word_tuple[0] == "https":
+        # Manual check ('http<s>' is considered a noun)
+        if word_tuple[0].__contains__("http"):
             return False
 
         # If ends with unicode HORIZONTAL ELLIPSIS char -> truncated word inside the dataset -> useless
@@ -193,6 +194,10 @@ class DatasetProcessor(multiprocessing.Process):
 
         # If it is a number
         if word_tuple[0].isnumeric():
+            return False
+
+        # If it is not an ASCII string
+        if not word_tuple[0] == unidecode(word_tuple[0]):
             return False
 
         return True
