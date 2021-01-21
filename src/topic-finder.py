@@ -30,8 +30,10 @@ class TimeframeTopicsFinderProcess(multiprocessing.Process):
 
             # PASS 1 - Count single words frequencies
             words_frequencies = {}
+            number_of_pairs = 0
             for j in range(len(actual_timeframe)):
                 word_list = ast.literal_eval(actual_timeframe[j])
+                number_of_pairs += len(word_list) * (len(word_list) - 1)
 
                 for k in range(len(word_list)):
                     entry = words_frequencies.get(word_list[k], 0)     # 0 as default value
@@ -66,6 +68,7 @@ class TimeframeTopicsFinderProcess(multiprocessing.Process):
                 matrix.append(column)
 
             # PASS 2 - Compute frequent pairs
+            bar_iterator = iter(atpbar(range(int(number_of_pairs/2)), name="Process {} - Timeframe {} of {} - Computing frequent pairs".format(self.id, i + 1, len(self.timeframes))))
             for j in range(len(actual_timeframe)):
                 tweet = ast.literal_eval(actual_timeframe[j])
 
@@ -75,23 +78,28 @@ class TimeframeTopicsFinderProcess(multiprocessing.Process):
                         try:
                             first_index = frequent_words_list.index(tweet[k])
                             second_index = frequent_words_list.index(tweet[l])
+
+                            if second_index > first_index:
+                                temp = first_index
+                                first_index = second_index
+                                second_index = temp
+
+                            matrix[first_index][second_index] += 1
                         except ValueError:
                             # One of the two words was not considered frequent
-                            continue
+                            pass
 
-                        if second_index > first_index:
-                            temp = first_index
-                            first_index = second_index
-                            second_index = temp
+                        # Let bar to progress
+                        try:
+                            next(bar_iterator)
+                        except StopIteration:
+                            pass
 
-                        matrix[first_index][second_index] += 1
-
-            #if self.id == 1 and i == 0:
-            #    print(numbered_words)
-            #    for j in range(len(matrix)):
-            #        for k in range(len(matrix[j])):
-            #            sys.stdout.write("{}\t".format(matrix[j][k]))
-            #        print()
+            # Final bar progress
+            try:
+                next(bar_iterator)
+            except StopIteration:
+                pass
 
             frequent_pairs = []
             for j in range(len(matrix)):
@@ -301,7 +309,7 @@ if __name__ == "__main__":
     flush()
 
     if debug:
-        dump_frequent_topics(frequent_timeframe_topics, "./frequent_pairs_found.txt")
+        dump_frequent_topics(frequent_timeframe_topics, "frequent_pairs_found.txt")
 
     #for timeframe_topics_list in frequent_timeframe_topics:
     #    for single_timeframe in timeframe_topics_list:
