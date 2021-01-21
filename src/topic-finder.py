@@ -54,7 +54,7 @@ class TimeframeTopicsFinderProcess(multiprocessing.Process):
             # Remove not frequent words and free unused memory
             frequent_words = {j:words_frequencies[j] for j in words_frequencies if words_frequencies[j] >= self.threshold}
             frequent_words_list = list(frequent_words.keys())
-            frequent_words_list.sort()
+            # frequent_words_list.sort()
 
             del words_frequencies
             del frequent_words
@@ -105,7 +105,11 @@ class TimeframeTopicsFinderProcess(multiprocessing.Process):
             for j in range(len(matrix)):
                 for k in range(len(matrix[j])):
                     if matrix[j][k] >= self.threshold:
-                        pair = (frequent_words_list[j], frequent_words_list[k], matrix[j][k])
+                        # To keep alphabetical order of pairs and prevent frequent_word_list object sorting
+                        if frequent_words_list[j] < frequent_words_list[k]:
+                            pair = (frequent_words_list[j], frequent_words_list[k], matrix[j][k])
+                        else:
+                            pair = (frequent_words_list[k], frequent_words_list[j], matrix[j][k])
                         frequent_pairs.append(pair)
 
             timeframe_entry = (self.offset + i, frequent_pairs)
@@ -139,6 +143,7 @@ def split_dataset_by_timeframe(dataset_path, timespan, timeunit, debug):
     base_timeframe_item = None
     bucket = []
     previous_timestamp = None
+    timeframe_number = 0
     for index, row in dataset.iterrows():
 
         actualTimestamp = row[0]
@@ -150,7 +155,8 @@ def split_dataset_by_timeframe(dataset_path, timespan, timeunit, debug):
             previous_timestamp = actualTimestamp
 
             if debug:
-                debug_file.write("Initial timestamp: \t{} ({})\n".format(actualTimestamp, datetime.fromtimestamp(actualTimestamp)))
+                debug_file.write("Timeframe {}\nInitial timestamp: \t{} ({})\n".format(timeframe_number,actualTimestamp, datetime.fromtimestamp(actualTimestamp)))
+                timeframe_number += 1
         elif is_in_same_timeframe(base_timeframe_item, actualTimestamp, timespan, timeunit):
             bucket.append(actualTweet)
             previous_timestamp = actualTimestamp
@@ -165,7 +171,8 @@ def split_dataset_by_timeframe(dataset_path, timespan, timeunit, debug):
             previous_timestamp = actualTimestamp
 
             if debug:
-                debug_file.write("Initial timestamp: \t{} ({})\n".format(actualTimestamp, datetime.fromtimestamp(actualTimestamp)))
+                debug_file.write("Timeframe {}\nInitial timestamp: \t{} ({})\n".format(timeframe_number, actualTimestamp, datetime.fromtimestamp(actualTimestamp)))
+                timeframe_number += 1
 
         # Let proceed the bar
         try :
