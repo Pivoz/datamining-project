@@ -8,7 +8,7 @@ if __name__ == "__main__":
             data = json.load(settings)
 
             # Build the command to execute
-            command = "cd ../src && python3 topic-finder.py {} --timespan {} --timeunit {} --timespan-threshold {} --global-threshold {}".format(
+            command = "cd ../src && python3 spark-topic-finder.py {} --timespan {} --timeunit {} --timespan-threshold {} --global-threshold {}".format(
                 data["dataset_relative_path"], data["timespan"], data["timeunit"], data["timespan_threshold"], data["global_threshold"])
 
             # Adding optional fields
