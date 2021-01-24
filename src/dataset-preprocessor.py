@@ -200,6 +200,10 @@ class DatasetProcessor(multiprocessing.Process):
         if not word_tuple[0] == unidecode(word_tuple[0]):
             return False
 
+        # End of link
+        if word_tuple[0] == "amp":
+            return False
+
         return True
 
 """

@@ -8,35 +8,69 @@ from pyspark.ml.fpm import FPGrowth
 from pyspark.sql.functions import size
 import ast
 
-def find_consistent_topics(frequent_topics_per_timeframe, threshold):
-    # TODO
+WEIGHT_LOW = 1
+WEIGHT_MEDIUM = 3
+WEIGHT_HIGH = 5
+
+def find_consistent_topics(frequent_topics_per_timeframe, frequencies_dict, min_timeframes_threshold):
     raise NotImplemented()
+
 
 def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
     frequent_topics_per_timeframe = []
-    bar_iterator = iter(atpbar(range(len(timeframes_limits)), name="Computing frequent itemsets per timeframe"))
+    num_timeframes = len(timeframes_limits)
+    bar_iterator = iter(atpbar(range(num_timeframes), name="Computing frequent itemsets per timeframe"))
     tweets_dataset = tweets_dataset.select("_c1").collect()
+    tf_id = 0
+
+    frequent_itemsets_dict = {}
 
     for start, end in timeframes_limits:
         tweets_in_timeframe = tweets_dataset[start:end+1]
 
-        tf_id = 0
         df_tweets_in_timeframe = [(tf_id, ast.literal_eval(item[0])) for item in tweets_in_timeframe]
         df = spark.createDataFrame(df_tweets_in_timeframe, schema=["tf_id", "tweets"])
 
         fpGrowth = FPGrowth(itemsCol="tweets", minSupport=0.01, minConfidence=0.001)
         model = fpGrowth.fit(df)
         freq = model.freqItemsets
-        freq = freq.filter((size(freq.items) >= 2) & (freq.freq >= support_threshold)).select("items")
-        frequent_topics_per_timeframe.append(freq)
+        freq = freq.filter((size(freq.items) >= 2) & (freq.freq >= support_threshold))
+        frequent_topics_per_timeframe.append(freq.select("items"))
+
+        # Add to the global_dict
+        max_freq = freq.select("freq").groupby().max("freq").first()["max(freq)"]
+
+        for item in freq.collect():
+            key = tuple(item["items"])
+            if not frequent_itemsets_dict.keys().__contains__(key):
+                frequent_itemsets_dict[key] = [None for i in range(num_timeframes)]
+
+            # Update the frequencies
+            values = frequent_itemsets_dict[key]
+            freq_ratio = item["freq"] / max_freq
+
+            if freq_ratio >= 0.8:
+                freq_weight = WEIGHT_HIGH
+            elif freq_ratio < 0.3:
+                freq_weight = WEIGHT_LOW
+            else:
+                freq_weight = WEIGHT_MEDIUM
+
+            values[tf_id] = freq_weight
+            frequent_itemsets_dict[key] = values
 
         # Let proceed the bar
         bar_step(bar_iterator)
 
+        tf_id += 1
+
     # Final step of the bar
     bar_step(bar_iterator)
 
-    return frequent_topics_per_timeframe
+    for key in frequent_itemsets_dict.keys():
+        print(key, " ---- ", frequent_itemsets_dict[key])
+
+    return frequent_topics_per_timeframe, frequent_itemsets_dict
 
 def bar_step(bar_iterator):
     try:
@@ -209,9 +243,9 @@ if __name__ == "__main__":
     print("--- Found {} timeframes ---\n".format(nBuckets))
 
     # Find frequent itemsets/topics for each timeframe
-    frequent_topics_per_timeframe = find_frequent_topics(timeframes_limits, dataset.select("_c1").cache(), timespan_threshold)
+    frequent_topics_per_timeframe, frequencies_dict = find_frequent_topics(timeframes_limits, dataset.select("_c1").cache(), timespan_threshold)
 
     # Find consistent topics in time
-    consistent_topics_in_time = find_consistent_topics(frequent_topics_per_timeframe, global_threshold)
+    # consistent_topics_in_time = find_consistent_topics(frequent_topics_per_timeframe, frequencies_dict, global_threshold)
 
     spark.stop()

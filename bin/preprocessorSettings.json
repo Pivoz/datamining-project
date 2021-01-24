@@ -1,5 +1,5 @@
 {
-  "dataset_relative_path": "../dataset/tweets_sentiment_analysis.csv",
+  "dataset_relative_path": "../dataset/covid19_tweets.csv",
   "processes": 5,
   "debug": false,
   "download_nltk_lib": false
