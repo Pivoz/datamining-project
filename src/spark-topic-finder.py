@@ -7,17 +7,149 @@ from atpbar import atpbar
 from pyspark.ml.fpm import FPGrowth
 from pyspark.sql.functions import size
 import ast
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.backends.backend_pdf
 
 WEIGHT_LOW = 1
 WEIGHT_MEDIUM = 3
 WEIGHT_HIGH = 5
 
-def find_consistent_topics(frequent_topics_per_timeframe, frequencies_dict, min_timeframes_threshold):
-    raise NotImplemented()
+def make_report(topics_dict, report_filename, support_threshold, global_threshold, n_timeframes):
+    pdf = matplotlib.backends.backend_pdf.PdfPages(report_filename)
+    figs = []
+
+    # print("DICT: ")
+    # print(topics_dict)
+
+    # Parse topics_dict
+    actual_key = 0
+    n_keys_done = 0
+    while n_keys_done < len(topics_dict.keys()):
+        if topics_dict.__contains__(actual_key):
+            values = topics_dict[actual_key]
+            x_axis = []
+            y_axis = []
+
+            for tuple in values:
+                x_axis.append(round(tuple[0],2)) # Frequency
+                y_axis.append(tuple_to_string(tuple[1])) # Topic label
+
+
+
+            plt.rcdefaults()
+            fig, ax = plt.subplots()
+            ax.barh(np.arange(len(y_axis)), x_axis, align='center', color='blue', ecolor='black')
+            ax.set_yticks(np.arange(len(y_axis)))
+            ax.set_yticklabels(y_axis)
+            ax.set_title("Consistent topics in {} ({}%) timeframes\n\nSupport threshold: {} entries per timeframe\nN. timeframes threshold: {} timeframes".format(actual_key, int(actual_key/n_timeframes*100),support_threshold, global_threshold))
+            plt.xlabel("Average frequency\n{} - Low frequent\n{} - High frequent".format(WEIGHT_LOW, WEIGHT_HIGH))
+            # plt.ylabel("Consistent topics")
+            plt.xlim([0, WEIGHT_HIGH])
+            ax.invert_yaxis()
+            figs.append(fig)
+
+            n_keys_done += 1
+
+        actual_key += 1
+
+    for fig in figs:
+        pdf.savefig(fig, bbox_inches='tight')
+    pdf.close()
+
+def tuple_to_string(in_tuple):
+    string = str(in_tuple[0])
+    for i in range(1, len(in_tuple)):
+        string += ", {}".format(in_tuple[i])
+    return string
+
+def find_consistent_topics(frequencies_dict, min_timeframes_threshold, max_topics_to_show):
+    ranking_dict = {}
+    n_topics_already_considered = 0
+    max_key = 0
+
+    # Identify valuable consistent topics in time
+    for key in frequencies_dict.keys():
+        n_of_non_none = sum(x is not None for x in frequencies_dict[key])
+        if n_of_non_none >= min_timeframes_threshold:
+            # Add the empty entry if it does not exists
+            if not ranking_dict.keys().__contains__(n_of_non_none):
+                ranking_dict[n_of_non_none] = []
+
+            # Compute the mean weight
+            sum_weights = 0
+            for entry in frequencies_dict[key]:
+                if entry is not None:
+                    sum_weights += entry
+            weight_mean = sum_weights / n_of_non_none
+
+            ranking_dict_value = ranking_dict[n_of_non_none]
+            ranking_dict_value.append((weight_mean, key))
+            ranking_dict[n_of_non_none] = ranking_dict_value
+
+            # Update max_key
+            if n_of_non_none > max_key:
+                max_key = n_of_non_none
+
+            # Increase number of considered topics and eventually stop
+            n_topics_already_considered += 1
+            if n_topics_already_considered == max_topics_to_show:
+                break
+
+    # Sort the entries
+    # for key in ranking_dict.keys():
+    #     array = ranking_dict[key]
+    #     array.sort(key=compare_function_for_frequent_topics)
+    #     ranking_dict[key] = array
+
+    # for key in ranking_dict.keys():
+    #     print(key, " ---- ", ranking_dict[key])
+
+    # Generate the ranking
+    truncated = []
+    count = 0
+    actual_key = min_timeframes_threshold
+    while actual_key <= max_key:
+        if ranking_dict.keys().__contains__(actual_key):
+            # Sort the entries
+            values = ranking_dict[actual_key]
+            values.sort(key=compare_function_for_frequent_topics, reverse=True)
+
+            # Add to the final list applying variation of closed itemsets
+            new_values = []
+            for topic_tuple in values:
+                superset_found = False
+
+                for topic_to_compare in values:
+                    if len(topic_to_compare[1]) > len(topic_tuple[1]) and is_superset(topic_tuple[1], topic_to_compare[1]):
+                        superset_found = True
+
+                if not superset_found:
+                    new_values.append(topic_tuple)
+                    count += 1
+                else:
+                    truncated.append((topic_tuple[1], actual_key, topic_tuple[0]))
+
+            ranking_dict[actual_key] = new_values
+
+        actual_key += 1
+
+    return ranking_dict, count, truncated
+
+def is_superset(actual_tuple, potential_superset):
+    for item in actual_tuple:
+        if not potential_superset.__contains__(item):
+            return False
+
+    return True
+
+def compare_function_for_frequent_topics(item):
+    return item[0]
 
 
 def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
-    frequent_topics_per_timeframe = []
+    # frequent_topics_per_timeframe = []
     num_timeframes = len(timeframes_limits)
     bar_iterator = iter(atpbar(range(num_timeframes), name="Computing frequent itemsets per timeframe"))
     tweets_dataset = tweets_dataset.select("_c1").collect()
@@ -35,7 +167,7 @@ def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
         model = fpGrowth.fit(df)
         freq = model.freqItemsets
         freq = freq.filter((size(freq.items) >= 2) & (freq.freq >= support_threshold))
-        frequent_topics_per_timeframe.append(freq.select("items"))
+        # frequent_topics_per_timeframe.append(freq.select("items"))
 
         # Add to the global_dict
         max_freq = freq.select("freq").groupby().max("freq").first()["max(freq)"]
@@ -67,10 +199,10 @@ def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
     # Final step of the bar
     bar_step(bar_iterator)
 
-    for key in frequent_itemsets_dict.keys():
-        print(key, " ---- ", frequent_itemsets_dict[key])
+    # for key in frequent_itemsets_dict.keys():
+    #     print(key, " ---- ", frequent_itemsets_dict[key])
 
-    return frequent_topics_per_timeframe, frequent_itemsets_dict
+    return frequent_itemsets_dict
 
 def bar_step(bar_iterator):
     try:
@@ -239,13 +371,24 @@ if __name__ == "__main__":
     # Split dataset items into different lists with respect to the provided timeframe
     print("--- Splitting the dataset by timeframe ---")
     timeframes_limits = split_dataset_by_timeframe(dataset.select("_c0").cache(), timespan, timeunit, debug)
-    nBuckets = len(timeframes_limits)
-    print("--- Found {} timeframes ---\n".format(nBuckets))
+    n_timeframes = len(timeframes_limits)
+    print("--- Found {} timeframes ---".format(n_timeframes))
 
     # Find frequent itemsets/topics for each timeframe
-    frequent_topics_per_timeframe, frequencies_dict = find_frequent_topics(timeframes_limits, dataset.select("_c1").cache(), timespan_threshold)
+    print("--- Searching for frequent topics ---")
+    frequencies_dict = find_frequent_topics(timeframes_limits, dataset.select("_c1").cache(), timespan_threshold)
+    print("--- Found {} frequent topics ---".format(len(frequencies_dict.keys())))
 
     # Find consistent topics in time
-    # consistent_topics_in_time = find_consistent_topics(frequent_topics_per_timeframe, frequencies_dict, global_threshold)
+    print("--- Searching for consistent topics in time ---")
+    consistent_topics_in_time_dict, count, truncated = find_consistent_topics(frequencies_dict, global_threshold, max_topics_to_show)
+    print("--- Found {} consistent topics in time (truncated {} topics using closed itemsets technique) ---".format(count, len(truncated)))
 
+    # Produce final report of findings
+    print("--- Producing the final report ---")
+    make_report(consistent_topics_in_time_dict, "report.pdf", timespan_threshold, global_threshold, n_timeframes)
+    print("--- Report saved ---")
+
+    # Finish the execution of Spark
+    print("--- Execution terminated correctly ---")
     spark.stop()
