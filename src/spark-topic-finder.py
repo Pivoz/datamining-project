@@ -20,9 +20,6 @@ def make_report(topics_dict, report_filename, support_threshold, global_threshol
     pdf = matplotlib.backends.backend_pdf.PdfPages(report_filename)
     figs = []
 
-    # print("DICT: ")
-    # print(topics_dict)
-
     # Parse topics_dict
     actual_key = 0
     n_keys_done = 0
@@ -33,10 +30,8 @@ def make_report(topics_dict, report_filename, support_threshold, global_threshol
             y_axis = []
 
             for tuple in values:
-                x_axis.append(round(tuple[0],2)) # Frequency
-                y_axis.append(tuple_to_string(tuple[1])) # Topic label
-
-
+                x_axis.append(round(tuple[0], 2))           # Frequency
+                y_axis.append(tuple_to_string(tuple[1]))    # Topic label
 
             plt.rcdefaults()
             fig, ax = plt.subplots()
@@ -45,7 +40,6 @@ def make_report(topics_dict, report_filename, support_threshold, global_threshol
             ax.set_yticklabels(y_axis)
             ax.set_title("Consistent topics in {} ({}%) timeframes\n\nSupport threshold: {} entries per timeframe\nN. timeframes threshold: {} timeframes".format(actual_key, int(actual_key/n_timeframes*100),support_threshold, global_threshold))
             plt.xlabel("Average frequency\n{} - Low frequent\n{} - High frequent".format(WEIGHT_LOW, WEIGHT_HIGH))
-            # plt.ylabel("Consistent topics")
             plt.xlim([0, WEIGHT_HIGH])
             ax.invert_yaxis()
             figs.append(fig)
@@ -97,15 +91,6 @@ def find_consistent_topics(frequencies_dict, min_timeframes_threshold, max_topic
             if n_topics_already_considered == max_topics_to_show:
                 break
 
-    # Sort the entries
-    # for key in ranking_dict.keys():
-    #     array = ranking_dict[key]
-    #     array.sort(key=compare_function_for_frequent_topics)
-    #     ranking_dict[key] = array
-
-    # for key in ranking_dict.keys():
-    #     print(key, " ---- ", ranking_dict[key])
-
     # Generate the ranking
     truncated = []
     count = 0
@@ -149,7 +134,6 @@ def compare_function_for_frequent_topics(item):
 
 
 def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
-    # frequent_topics_per_timeframe = []
     num_timeframes = len(timeframes_limits)
     bar_iterator = iter(atpbar(range(num_timeframes), name="Computing frequent itemsets per timeframe"))
     tweets_dataset = tweets_dataset.select("_c1").collect()
@@ -167,7 +151,6 @@ def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
         model = fpGrowth.fit(df)
         freq = model.freqItemsets
         freq = freq.filter((size(freq.items) >= 2) & (freq.freq >= support_threshold))
-        # frequent_topics_per_timeframe.append(freq.select("items"))
 
         # Add to the global_dict
         max_freq = freq.select("freq").groupby().max("freq").first()["max(freq)"]
@@ -198,9 +181,6 @@ def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
 
     # Final step of the bar
     bar_step(bar_iterator)
-
-    # for key in frequent_itemsets_dict.keys():
-    #     print(key, " ---- ", frequent_itemsets_dict[key])
 
     return frequent_itemsets_dict
 
@@ -290,9 +270,6 @@ def check_arguments_values(timespan, timeunit, timespan_threshold, global_thresh
 
     return True
 
-def compute(item):
-    print(item)
-    return True
 
 if __name__ == "__main__":
 
@@ -313,7 +290,7 @@ if __name__ == "__main__":
     global_threshold = None
     debug = False
     max_topics_to_show = sys.maxsize
-    n_processes = 4
+    output_file_report = None
 
     # Parsing inline arguments
     arg_iter = iter(sys.argv)
@@ -335,8 +312,8 @@ if __name__ == "__main__":
                 debug = True
             elif item == "--show":
                 max_topics_to_show = int(next(arg_iter))
-            elif item == "--processes":
-                n_processes = int(next(arg_iter))
+            elif item == "--output":
+                output_file_report = next(arg_iter).lower()
         except ValueError:
             sys.stderr.write("ERROR: wrong integer conversion of inline arguments\n")
             exit(3)
@@ -353,8 +330,8 @@ if __name__ == "__main__":
         kernel32 = ctypes.windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
-    print("Topic finder started with the following parameters:\n\t> Dataset path: \t{}\n\t> Time frame: \t\t{} {}\n\t> Timespan threshold: \t{}\n\t> Global threshold: \t{}\n\t> Max topics to show: \t{}\n\t> N. processes: \t{}\n\t> Debug: \t\t{}\n"
-        .format(dataset_path, timespan, timeunit, timespan_threshold, global_threshold, max_topics_to_show, n_processes, debug))
+    print("Topic finder started with the following parameters:\n\t> Dataset path: \t{}\n\t> Time frame: \t\t{} {}\n\t> Timespan threshold: \t{}\n\t> Global threshold: \t{}\n\t> Max topics to show: \t{}\n\t> Output report file: \t{}\n\t> Debug: \t\t{}\n"
+        .format(dataset_path, timespan, timeunit, timespan_threshold, global_threshold, max_topics_to_show, output_file_report, debug))
 
     # Start Spark session
     spark = SparkSession \
@@ -362,11 +339,9 @@ if __name__ == "__main__":
         .appName("Data mining project - Davide Piva") \
         .config("spark.ui.showConsoleProgress", "false") \
         .getOrCreate()
-
     spark.sparkContext.setLogLevel("ERROR")
 
     dataset = spark.read.load(dataset_path, format="csv", header="false")
-    pandas_dataset = dataset.toPandas()
 
     # Split dataset items into different lists with respect to the provided timeframe
     print("--- Splitting the dataset by timeframe ---")
@@ -385,9 +360,10 @@ if __name__ == "__main__":
     print("--- Found {} consistent topics in time (truncated {} topics using closed itemsets technique) ---".format(count, len(truncated)))
 
     # Produce final report of findings
-    print("--- Producing the final report ---")
-    make_report(consistent_topics_in_time_dict, "report.pdf", timespan_threshold, global_threshold, n_timeframes)
-    print("--- Report saved ---")
+    if output_file_report is not None:
+        print("--- Producing the final report ---")
+        make_report(consistent_topics_in_time_dict, "report.pdf", timespan_threshold, global_threshold, n_timeframes)
+        print("--- Report saved ---")
 
     # Finish the execution of Spark
     print("--- Execution terminated correctly ---")

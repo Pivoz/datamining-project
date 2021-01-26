@@ -136,3 +136,6 @@ dataset/*.csv
 src/*.csv
 src/*.txt
 src/*.pdf
+
+bin/*.txt
+bin/*.pdf

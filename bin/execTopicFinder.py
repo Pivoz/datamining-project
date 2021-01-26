@@ -8,14 +8,14 @@ if __name__ == "__main__":
             data = json.load(settings)
 
             # Build the command to execute
-            command = "cd ../src && python3 spark-topic-finder.py {} --timespan {} --timeunit {} --timespan-threshold {} --global-threshold {}".format(
+            command = "python3 ../src/spark-topic-finder.py {} --timespan {} --timeunit {} --timespan-threshold {} --global-threshold {}".format(
                 data["dataset_relative_path"], data["timespan"], data["timeunit"], data["timespan_threshold"], data["global_threshold"])
 
             # Adding optional fields
             if "max_topics_to_show" in data.keys():
                 command += " --show {}".format(data["max_topics_to_show"])
-            if "processes" in data.keys():
-                command += " --processes {}".format(data["processes"])
+            if "pdf_output" in data.keys():
+                command += " --output {}".format(data["pdf_output"])
             if "debug" in data.keys() and data["debug"]:
                 command += " --debug"
                 print("RUNNING COMMAND: ", command, "\n")

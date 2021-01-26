@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{3}
+\begin{thebibliography}{7}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -58,6 +58,50 @@ Customer-Complaints \bibinfo{year}{[n.d.]}\natexlab{}.
 \url{https://www.eonetwork.org/octane-magazine/special-features/sixstepstodealingwithcustomercomplaints}
 \showURL{%
 Retrieved December 18, 2020 from \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Python-nltk}{Python-nltk}{[n.d.]}]%
+        {python-nltk}
+Python-nltk \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Natural Language ToolKit python library}}.
+\newblock
+\urldef\tempurl%
+\url{https://www.nltk.org/}
+\showURL{%
+Retrieved January 01, 2021 from \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Python-Pandas}{Python-Pandas}{[n.d.]}]%
+        {python-pandas}
+Python-Pandas \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Pandas python library}}.
+\newblock
+\urldef\tempurl%
+\url{https://pandas.pydata.org/}
+\showURL{%
+Retrieved January 01, 2021 from \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Sentiment-Analysis-Dataset}{Sentiment-Analysis-Dataset}{[n.d.]}]%
+        {sentiment-analysis-dataset}
+Sentiment-Analysis-Dataset \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Tweets for sentiment analysis}}.
+\newblock
+\urldef\tempurl%
+\url{https://www.kaggle.com/kazanova/sentiment140}
+\showURL{%
+Retrieved January 01, 2021 from \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Twitter-statistics}{Twitter-statistics}{[n.d.]}]%
+        {twitter-stats}
+Twitter-statistics \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Twitter usage statistics}}.
+\newblock
+\urldef\tempurl%
+\url{https://www.internetlivestats.com/twitter-statistics/}
+\showURL{%
+Retrieved January 01, 2021 from \tempurl}
 
 
 \bibitem[\protect\citeauthoryear{upGrad}{upGrad}{[n.d.]}]%

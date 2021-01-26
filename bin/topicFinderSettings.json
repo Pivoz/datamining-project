@@ -6,5 +6,5 @@
   "global_threshold": 3,
   "debug": true,
   "max_topics_to_show": "5000",
-  "processes": 5
+  "pdf_output": "report.pdf"
 }

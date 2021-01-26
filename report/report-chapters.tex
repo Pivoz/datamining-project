@@ -1,43 +1,85 @@
 \section{Introduction and Motivation}
-Twitter, as any other social network and blog, is a constant source of unstructured data that, if processed in the right way, can be leveraged to obtain valuable insights. Due to this reason, lots of companies have started to collect this huge amount of data in order to perform in-depth analysis; many of them have initiated to perform sentiment analysis to check customers satisfaction with respect to their products. According to upGrad \cite{upGrad}, Big Data can help create pioneering breakthroughs for organizations that know how to use it correctly.
+\label{sec:introduction}
+Twitter, as any other social network and blog, is a constant source of unstructured data that, if processed in the right way, can be leveraged to obtain valuable insights in several fields. Due to this reason, lots of companies have started to collect this huge amount of data in order to perform in-depth analysis on it; many of them have initiated to perform sentiment analysis to check customers satisfaction with respect to their products. Other organizations have started to use this asset, hereafter called Big Data, in their decision-making process that includes reporting, exploration of data and exploratory search (e.g., finding correlations). According to upGrad \cite{upGrad}, Big Data can help create pioneering breakthroughs for companies that know how to use it correctly.
 
-A challenging aspect in Big Data analysis is to extract valuable insights that can drive business strategies and decisions. In this context, Twitter plays a crucial role during the information retrieval phase: millions of people publish everyday short messages, hereafter tweets, that often contain their desires or demands. The aim of many companies is to exploit these tweets in order to catch common issues or demands to guide business strategies. These insights, according to upGrad \cite{upGrad}, can be used to develop new products/services, improve marketing techniques, optimize customer service, improve employee productivity and find radical ways to expand brand outreach.
+A challenging aspect in Big Data analysis is to extract valuable insights that can drive business strategies and decisions. In this context, the social network Twitter plays a crucial role during the information retrieval phase: millions of people publish everyday short messages, hereafter tweets, that often contain their desires or demands. The aim of many companies is to leverage these tweets in order to catch common issues or demands to guide their business strategies for their products or services. These insights, according to upGrad \cite{upGrad}, can be used to develop new products/services, enhance marketing techniques, optimize customer service, improve employee productivity and find radical ways to expand brand outreach.
 
-In addition, organizations aim also to intercept occasional issues or demands that are not constant over time but are very popular in a bounded period of time. Catching this kind of insights, permits companies to better address their business short-term decision-making phase. According to Ben Ridler \cite{customer-satistaction}, a business owner ability to effectively deal with customer complaints provides a great opportunity to turn dissatisfied customers into active promoters of the business.
+In addition, organizations aim also to intercept occasional issues or demands that are not constant over time but are very popular in a bounded period of time. This is the case when there is a sudden issue or request for a particular product or service that affects many customers. Catching this kind of insights, permits companies to better address their business short-term decision-making phase and enhance promptly their products or services. According to Ben Ridler \cite{customer-satistaction}, a business owner ability to effectively deal with customer complaints provides a great opportunity to turn dissatisfied customers into active promoters of the business.
 
-Nowadays there are lots of datasets that group together even millions of tweets and many of them are easily and freely accessible by anyone through internet. Despite the fact that many of those datasets contain unusable data that force us to pre-process them, companies can elaborate those tweets to achieve their business goals.
+Nowadays there are lots of datasets that group together even millions of tweets and many of them are easily and freely accessible by anyone through internet thanks to the fact that there are more than 500 millions new tweets each day \cite{twitter-stats}. Despite the fact that many of those datasets contain unusable data that force people to pre-process them, companies can elaborate those tweets in order to achieve the above mentioned business goals.
 
 \section{Related work}
+\label{sec:related_word}
 
 
 \section{Problem statement}
-In order to achieve the above-mentioned goal (i.e., identify consistent topic in time in tweets), I have used a public available dataset that groups more than 300.000 tweets that contain the hashtag \textit{\#covid19} \cite{covid19-tweets-dataset}. As many other datasets composed of unstructured data dumped from a social network such as Twitter, the dataset I used has lots of fields that characterize each tweet (e.g., publisher's username, location and account information, text of the message, etc.). 
+\label{sec:problem_statement}
+In order to achieve the goal described in Section \ref{sec:introduction} (i.e., identify consistent topics in time inside tweets), a public available dataset that groups more than 300.000 tweets that contain the hashtag \textit{\#covid19} \cite{covid19-tweets-dataset} has been used. As many other datasets composed of unstructured data dumped from a social network such as Twitter, this dataset has lots of fields that characterize each tweet (e.g., publisher's username, location and account information, text of the message, etc.). 
 
-To identify consistent topics in time using those tweets, I only need the date of the publication of each of them and the relative text. In other words, in my working environment a tweet is defined as a tuple composed by the following fields:
+To identify consistent topics in time using those tweets, the only fields needed are the publication date of each of them and the relative text. In other words, in the working environment a tweet is defined as a tuple composed by the following fields:
 \begin{itemize}
 	\item \textbf{date}: the date of the tweet publication, expressed as an integer value that represents the number of seconds that have elapsed since the midnight of 1\textsuperscript{st} January 1970;
 	\item \textbf{text}: the text of the tweet represented as a list of words. This list is obtained splitting the source text using the blank character " " as separator.
 \end{itemize}
 
-Therefore, in order to obtain the formal model of this problem, I define the following sets:
+Therefore, in order to obtain the formal model of this problem, the following sets are been defined:
 \begin{description}
-	\item[TWEET] = the set of tweets, defined as $\mathrm{TIMESTAMP} \times \mathrm{TEXT}$ where $\mathrm{TIMESTAMP} \subset \mathbb{N}_{\geq 0}$, $\mathrm{TEXT} = \{x | x \in \Sigma^*\}$ and $\Sigma$ is the alphabet;
-	\item[THRESHOLD] = the set of all the possible thresholds to identify frequent terms in time, defined as a subset of $\mathbb{N}_{\geq 0}$
+	\item[TWEET] = the set of tweets, defined as $\mathrm{TIMESTAMP} \times \mathrm{TEXT}$ where $\mathrm{TIMESTAMP} \subset \mathbb{N}_{\geq 0}$ and $\mathrm{TEXT} = \{x | x \in \Sigma^*\}$ where $\Sigma$ is the reference alphabet;
+	\item[TIMESPAN] = the set of all the possible time spans in which the input dataset can be split, defined as a subset of $\mathbb{N}_{\geq 0}$
+	\item[TS-THRESHOLD] = the set of all the possible thresholds to identify frequent terms and topics in a single time span, defined as a subset of $\mathbb{N}_{\geq 0}$
+	\item[GB-THRESHOLD] = the set of all the possible thresholds to identify consistent topics over all the time spans, defined as a subset of $\mathbb{N}_{\geq 0}$
 \end{description}
 
 \noindent The aim is to model an utility function \textit{f} defined as
 \begin{center}
-	\textit{f}: $\mathrm{TWEET} \times \mathrm{THRESHOLD} \mapsto \mathrm{TOPIC}$
+	\textit{f}: $\mathrm{INPUT} \mapsto \mathrm{TOPIC}$
 \end{center}
-where $\mathrm{TOPIC} = \{x | x \in \Sigma^*\}$ and $\Sigma$ is the alphabet. In other words, $\mathrm{TOPIC}$ is the set of all the possible trending topics over time.
+where $\mathrm{INPUT}$ is defined as 
+\begin{center}
+	$\mathrm{TWEET} \times \mathrm{TIMESPAN} \times \mathrm{TS\-THRESHOLD} \times \mathrm{GB\-THRESHOLD}$
+\end{center}
+ and $\mathrm{TOPIC} = \{x | x \in \Sigma^*\}$ where $\Sigma$ is the reference alphabet. In other words, $\mathrm{TOPIC}$ is the set of all the possible consistent topics over all the identified time spans.
 
 \section{Solution}
+\label{sec:solution}
 
 
 \section{Implementation}
+\label{sec:implementation}
 
 
 \section{Dataset}
+\label{sec:dataset}
+As described previously in Section \ref{sec:problem_statement}, in order to build and test the solution presented in Section \ref{sec:solution} a public available CSV dataset with more than 300.000 tweets that contain the hashtag \textit{\#covid19} \cite{covid19-tweets-dataset} has been downloaded from kaggle.com and processed. As many other datasets that group together huge quantity of unstructured data, it had to undergo a pre-processing phase in order to remove unnecessary features and noisy data. 
 
+In that dataset, a tweet is defined as a data item composed of thirteen features: \textit{user-name}, \textit{user-location}, \textit{user-description}, \textit{user-created}, \textit{user-followers}, \textit{users-friends}, \textit{user-favourites}, \textit{user-verified}, \textit{date}, \textit{text}, \textit{hashtags}, \textit{source}, \textit{is-retweet}. In order to achieve the goal described in Section \ref{sec:problem_statement}, only two features are needed: the publication date of the tweet and the relative text. Due to this reason, the first stage of the pre-processing consists to cut off all the non-relevant data features. This has been achieved quite easily since the dataset is CSV (Comma Separated Value) file and the Pandas Python library \cite{python-pandas} has lots of APIs to manage efficiently such big datasets.
+
+After this initial stage, each tweet has been processed singularly in a multi-process execution where to each process is assigned a portion of the input dataset. For each tweet in the dataset portion, each process has to manipulate both the date and the text fields in the following manner:
+\begin{description}
+	\item[Date] field is transformed into an UNIX timestamp. In particular the publication date is stored in the input dataset as a string formatted as "yyyy-mm-dd hh:mm:ss", but thanks to the \textit{datetime} Python library this transformation can be performed in a easy and fast way. With the aim to be complaint also with the format of another dataset that groups together tweets in order to perform sentiment analysis \cite{sentiment-analysis-dataset}, the script responsible for the date manipulation is capable to transform also dates formatted like "Mon Apr 06 22:19:45 PDT 2009" into a UNIX timestamp.
+	\item[Text] field is transformed into a list of words. In particular, thanks to the \textit{nltk} \cite{python-nltk} Python library, the initial text has been split using the blank character " " as separator and only the useful words that can be leveraged in order to derive a topic have been kept. Due to this reason, only nouns and adjectives appear in the final result list. Furthermore, there are other situations where a word, even it is a name or an adjective, cannot be considered: 
+	\begin{itemize}
+		\item if the word contains a slash "/", non-ASCII characters, special Unicode sequences;
+		\item if the word represents a numeric value;
+		\item if the word is composed by only one character;
+		\item if the word is a stop word. This method has been implemented because there are some words like "https" or "amp" that are tagged as nouns but they cannot be leveraged to build a topic.
+	\end{itemize}
+	As a note, if the preprocessor script has been executed in the debug mode, all the non-considerable words are dumped inside a separated CSV file (together with the relative timestamp) in order to check if the script cut off useful words. Then, each considerable word is filtered and sanitized in order to remove all the eventual noisy characters. In particular, the filtering method performs the following operations:
+	\begin{enumerate}
+		\item all the word's characters are lowered;
+		\item all the emojis are removed;
+		\item all the non-alphanumeric characters are substituted with a blank space (e.g., the word "white-house" is transformed to "white house");
+		\item the word is split again using the blank character as separator to identify eventual other words after the previous operation;
+		\item all the obtained words are rechecked again to see if they are considerable and, eventually, discarded;
+		\item as a final operation, each of the obtained words are checked with an aliases map. If there is an entry for a word, then the associated value is substituted. The aim is to generalize as much as possible the words used inside the tweets leveraging the knowledge about that dataset in order to obtain better results: since all the texts contain the word "covid19" or one of its many variations (e.g., "sars-cov-2", "covid", "coronavirus", etc.), all of them are mapped to the word "covid19".
+	\end{enumerate}
+	After these filtering operations, a final check is performed over all the considerable words in order to find out if there are doubled words or empty string. 
+\end{description}
+
+When each process has terminated its execution, all the partial results are collected in a single list by the master process using a pipe-based communication and sort that list in ascending order using the timestamp value as key. The result is a list of tweets ordered by their publication: this feature can be leveraged by the main script described in Section \ref{sec:implementation} in order to lower the overall complexity.
 
 \section{Experimental evaluation}
+\label{sec:experimental_evaluation}
+
+\subsection{Test dataset}
+\label{subsec:test_dataset}
