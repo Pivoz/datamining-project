@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{7}
+\begin{thebibliography}{12}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -37,6 +37,17 @@
 \providecommand\natexlab[1]{#1}
 \providecommand\showeprint[2][]{arXiv:#2}
 
+\bibitem[\protect\citeauthoryear{apriori-algorithm}{apriori-algorithm}{[n.d.]}]%
+        {apriori-algorithm}
+apriori-algorithm \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{A-Priori algorithm reference}}.
+\newblock
+\urldef\tempurl%
+\url{https://en.wikipedia.org/wiki/Apriori_algorithm}
+\showURL{%
+Retrieved January 10, 2021 from \tempurl}
+
+
 \bibitem[\protect\citeauthoryear{Covid19-Dataset}{Covid19-Dataset}{[n.d.]}]%
         {covid19-tweets-dataset}
 Covid19-Dataset \bibinfo{year}{[n.d.]}\natexlab{}.
@@ -60,6 +71,62 @@ Customer-Complaints \bibinfo{year}{[n.d.]}\natexlab{}.
 Retrieved December 18, 2020 from \tempurl}
 
 
+\bibitem[\protect\citeauthoryear{Han, Pei, and Yin}{Han et~al\mbox{.}}{2000}]%
+        {fpgrowth-paper}
+\bibfield{author}{\bibinfo{person}{Jiawei Han}, \bibinfo{person}{Jian Pei},
+  {and} \bibinfo{person}{Yiwen Yin}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{Mining Frequent Patterns without Candidate
+  Generation}.
+\newblock \bibinfo{journal}{\emph{SIGMOD Rec.}} \bibinfo{volume}{29},
+  \bibinfo{number}{2} (\bibinfo{date}{May} \bibinfo{year}{2000}),
+  \bibinfo{pages}{1–12}.
+\newblock
+\showISSN{0163-5808}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/335191.335372}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{lemmatisation-stemming}{lemmatisation-stemming}{[n.d.]}]%
+        {lemmatisation-stemming}
+lemmatisation-stemming \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Lemmatisation and stemming reference}}.
+\newblock
+\urldef\tempurl%
+\url{https://nlp.stanford.edu/IR-book/html/htmledition/stemming-and-lemmatization-1.html}
+\showURL{%
+Retrieved January 10, 2021 from \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Li, Wang, Zhang, Zhang, and Chang}{Li
+  et~al\mbox{.}}{2008}]%
+        {pfpgrowth-paper}
+\bibfield{author}{\bibinfo{person}{Haoyuan Li}, \bibinfo{person}{Yi Wang},
+  \bibinfo{person}{Dong Zhang}, \bibinfo{person}{Ming Zhang}, {and}
+  \bibinfo{person}{Edward~Y. Chang}.} \bibinfo{year}{2008}\natexlab{}.
+\newblock \showarticletitle{Pfp: Parallel Fp-Growth for Query Recommendation}.
+  In \bibinfo{booktitle}{\emph{Proceedings of the 2008 ACM Conference on
+  Recommender Systems}} \emph{(\bibinfo{series}{RecSys '08})}.
+  \bibinfo{publisher}{Association for Computing Machinery},
+  \bibinfo{address}{New York, NY, USA}, \bibinfo{pages}{107–114}.
+\newblock
+\showISBNx{9781605580937}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/1454008.1454027}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{pcy-multihash-algorithms}{pcy-multihash-algorithms}{[n.d.]}]%
+        {pcy-multihash-algorithms}
+pcy-multihash-algorithms \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{PCY and multihash algorithms reference}}.
+\newblock
+\urldef\tempurl%
+\url{https://medium.com/weekly-data-science/the-pcy-algorithm-and-its-friends-ecba67216190}
+\showURL{%
+Retrieved January 10, 2021 from \tempurl}
+
+
 \bibitem[\protect\citeauthoryear{Python-nltk}{Python-nltk}{[n.d.]}]%
         {python-nltk}
 Python-nltk \bibinfo{year}{[n.d.]}\natexlab{}.
@@ -68,7 +135,7 @@ Python-nltk \bibinfo{year}{[n.d.]}\natexlab{}.
 \urldef\tempurl%
 \url{https://www.nltk.org/}
 \showURL{%
-Retrieved January 01, 2021 from \tempurl}
+Retrieved January 10, 2021 from \tempurl}
 
 
 \bibitem[\protect\citeauthoryear{Python-Pandas}{Python-Pandas}{[n.d.]}]%
@@ -79,7 +146,7 @@ Python-Pandas \bibinfo{year}{[n.d.]}\natexlab{}.
 \urldef\tempurl%
 \url{https://pandas.pydata.org/}
 \showURL{%
-Retrieved January 01, 2021 from \tempurl}
+Retrieved January 10, 2021 from \tempurl}
 
 
 \bibitem[\protect\citeauthoryear{Sentiment-Analysis-Dataset}{Sentiment-Analysis-Dataset}{[n.d.]}]%
@@ -90,7 +157,7 @@ Sentiment-Analysis-Dataset \bibinfo{year}{[n.d.]}\natexlab{}.
 \urldef\tempurl%
 \url{https://www.kaggle.com/kazanova/sentiment140}
 \showURL{%
-Retrieved January 01, 2021 from \tempurl}
+Retrieved January 10, 2021 from \tempurl}
 
 
 \bibitem[\protect\citeauthoryear{Twitter-statistics}{Twitter-statistics}{[n.d.]}]%
@@ -101,7 +168,7 @@ Twitter-statistics \bibinfo{year}{[n.d.]}\natexlab{}.
 \urldef\tempurl%
 \url{https://www.internetlivestats.com/twitter-statistics/}
 \showURL{%
-Retrieved January 01, 2021 from \tempurl}
+Retrieved January 10, 2021 from \tempurl}
 
 
 \bibitem[\protect\citeauthoryear{upGrad}{upGrad}{[n.d.]}]%

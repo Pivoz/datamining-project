@@ -12,12 +12,21 @@ Reallocating 'glb_str_end' (item size: 4) to 20 items.
 Reallocating 'glb_str_ptr' (item size: 4) to 20 items.
 Reallocating 'global_strs' (item size: 1) to 4000000 items.
 Reallocating 'singl_function' (item size: 4) to 100 items.
+Warning--empty organization in apriori-algorithm
+Warning--empty year in apriori-algorithm
+Warning--empty organization in apriori-algorithm
 Warning--empty organization in covid19-tweets-dataset
 Warning--empty year in covid19-tweets-dataset
 Warning--empty organization in covid19-tweets-dataset
 Warning--empty organization in customer-satistaction
 Warning--empty year in customer-satistaction
 Warning--empty organization in customer-satistaction
+Warning--empty organization in lemmatisation-stemming
+Warning--empty year in lemmatisation-stemming
+Warning--empty organization in lemmatisation-stemming
+Warning--empty organization in pcy-multihash-algorithms
+Warning--empty year in pcy-multihash-algorithms
+Warning--empty organization in pcy-multihash-algorithms
 Warning--empty organization in python-nltk
 Warning--empty year in python-nltk
 Warning--empty organization in python-nltk
@@ -33,45 +42,45 @@ Warning--empty organization in twitter-stats
 Warning--empty organization in upGrad
 Warning--empty year in upGrad
 Warning--empty organization in upGrad
-You've used 7 entries,
+You've used 12 entries,
             5727 wiz_defined-function locations,
-            1324 strings with 15392 characters,
-and the built_in function-call counts, 4459 in all, are:
-= -- 413
-> -- 0
+            1356 strings with 16322 characters,
+and the built_in function-call counts, 9005 in all, are:
+= -- 942
+> -- 104
 < -- 0
-+ -- 7
-- -- 0
-* -- 310
-:= -- 294
-add.period$ -- 21
-call.type$ -- 7
-change.case$ -- 35
-chr.to.int$ -- 7
-cite$ -- 28
-duplicate$ -- 512
-empty$ -- 393
-format.name$ -- 0
-if$ -- 1101
++ -- 44
+- -- 32
+* -- 641
+:= -- 670
+add.period$ -- 40
+call.type$ -- 12
+change.case$ -- 66
+chr.to.int$ -- 12
+cite$ -- 42
+duplicate$ -- 967
+empty$ -- 712
+format.name$ -- 40
+if$ -- 2236
 int.to.chr$ -- 2
 int.to.str$ -- 1
-missing$ -- 0
-newline$ -- 117
-num.names$ -- 0
-pop$ -- 337
+missing$ -- 9
+newline$ -- 173
+num.names$ -- 16
+pop$ -- 556
 preamble$ -- 1
-purify$ -- 56
+purify$ -- 114
 quote$ -- 0
-skip$ -- 155
+skip$ -- 322
 stack$ -- 0
-substring$ -- 217
-swap$ -- 49
+substring$ -- 489
+swap$ -- 113
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 210
-warning$ -- 21
-while$ -- 0
+type$ -- 346
+warning$ -- 30
+while$ -- 10
 width$ -- 0
-write$ -- 165
-(There were 21 warnings)
+write$ -- 263
+(There were 30 warnings)
