@@ -16,14 +16,16 @@ WEIGHT_LOW = 1
 WEIGHT_MEDIUM = 3
 WEIGHT_HIGH = 5
 
-def make_report(topics_dict, report_filename, support_threshold, global_threshold, n_timeframes):
+def make_report(topics_dict, report_filename, support_threshold, global_threshold, n_timeframes, max_topics_to_show):
     pdf = matplotlib.backends.backend_pdf.PdfPages(report_filename)
     figs = []
 
     # Parse topics_dict
     actual_key = 0
     n_keys_done = 0
-    while n_keys_done < len(topics_dict.keys()):
+    n_topics_already_considered = 0
+
+    while n_keys_done < len(topics_dict.keys()) and n_topics_already_considered < max_topics_to_show:
         if topics_dict.__contains__(actual_key):
             values = topics_dict[actual_key]
             x_axis = []
@@ -32,6 +34,11 @@ def make_report(topics_dict, report_filename, support_threshold, global_threshol
             for tuple in values:
                 x_axis.append(round(tuple[0], 2))           # Frequency
                 y_axis.append(tuple_to_string(tuple[1]))    # Topic label
+
+                # Increase number of considered topics and eventually stop
+                n_topics_already_considered += 1
+                if n_topics_already_considered == max_topics_to_show:
+                    break
 
             plt.rcdefaults()
             fig, ax = plt.subplots()
@@ -60,7 +67,6 @@ def tuple_to_string(in_tuple):
 
 def find_consistent_topics(frequencies_dict, min_timeframes_threshold, max_topics_to_show):
     ranking_dict = {}
-    n_topics_already_considered = 0
     max_key = 0
 
     # Identify valuable consistent topics in time
@@ -86,16 +92,12 @@ def find_consistent_topics(frequencies_dict, min_timeframes_threshold, max_topic
             if n_of_non_none > max_key:
                 max_key = n_of_non_none
 
-            # Increase number of considered topics and eventually stop
-            n_topics_already_considered += 1
-            if n_topics_already_considered == max_topics_to_show:
-                break
-
     # Generate the ranking
     truncated = []
     count = 0
+    n_topics_already_considered = 0
     actual_key = min_timeframes_threshold
-    while actual_key <= max_key:
+    while actual_key <= max_key and n_topics_already_considered < max_topics_to_show:
         if ranking_dict.keys().__contains__(actual_key):
             # Sort the entries
             values = ranking_dict[actual_key]
@@ -113,6 +115,11 @@ def find_consistent_topics(frequencies_dict, min_timeframes_threshold, max_topic
                 if not superset_found:
                     new_values.append(topic_tuple)
                     count += 1
+
+                    # Increase number of considered topics and eventually stop
+                    n_topics_already_considered += 1
+                    if n_topics_already_considered == max_topics_to_show:
+                        break
                 else:
                     truncated.append((topic_tuple[1], actual_key, topic_tuple[0]))
 
@@ -147,7 +154,7 @@ def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
         df_tweets_in_timeframe = [(tf_id, ast.literal_eval(item[0])) for item in tweets_in_timeframe]
         df = spark.createDataFrame(df_tweets_in_timeframe, schema=["tf_id", "tweets"])
 
-        fpGrowth = FPGrowth(itemsCol="tweets", minSupport=0.01, minConfidence=0.001)
+        fpGrowth = FPGrowth(itemsCol="tweets", minSupport=0.01, minConfidence=0.6)
         model = fpGrowth.fit(df)
         freq = model.freqItemsets
         freq = freq.filter((size(freq.items) >= 2) & (freq.freq >= support_threshold))
@@ -290,7 +297,7 @@ if __name__ == "__main__":
     global_threshold = None
     debug = False
     max_topics_to_show = sys.maxsize
-    output_file_report = None
+    output_file_report = "report.pdf"   # Default
 
     # Parsing inline arguments
     arg_iter = iter(sys.argv)
@@ -360,10 +367,9 @@ if __name__ == "__main__":
     print("--- Found {} consistent topics in time (truncated {} topics using closed itemsets technique) ---".format(count, len(truncated)))
 
     # Produce final report of findings
-    if output_file_report is not None:
-        print("--- Producing the final report ---")
-        make_report(consistent_topics_in_time_dict, "report.pdf", timespan_threshold, global_threshold, n_timeframes)
-        print("--- Report saved ---")
+    print("--- Producing the final report ---")
+    make_report(consistent_topics_in_time_dict, output_file_report, timespan_threshold, global_threshold, n_timeframes, max_topics_to_show)
+    print("--- Report saved ---")
 
     # Finish the execution of Spark
     print("--- Execution terminated correctly ---")

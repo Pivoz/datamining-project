@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{12}
+\begin{thebibliography}{13}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -114,6 +114,17 @@ Retrieved January 10, 2021 from \tempurl}
 \urldef\tempurl%
 \url{https://doi.org/10.1145/1454008.1454027}
 \showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{matplotlib-python}{matplotlib-python}{[n.d.]}]%
+        {matplotlib-python}
+matplotlib-python \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Matplotlib Python library reference}}.
+\newblock
+\urldef\tempurl%
+\url{https://matplotlib.org/}
+\showURL{%
+Retrieved January 10, 2021 from \tempurl}
 
 
 \bibitem[\protect\citeauthoryear{pcy-multihash-algorithms}{pcy-multihash-algorithms}{[n.d.]}]%
