@@ -168,19 +168,9 @@ def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
             if not frequent_itemsets_dict.keys().__contains__(key):
                 frequent_itemsets_dict[key] = [None for i in range(num_timeframes)]
 
-            # Update the frequencies
+            # Update the frequencies weight
             values = frequent_itemsets_dict[key]
-
-            freq_weight = (4 * item["freq"] / max_freq) + 1
-            # freq_ratio = item["freq"] / max_freq
-            # if freq_ratio >= 0.8:
-            #     freq_weight = WEIGHT_HIGH
-            # elif freq_ratio < 0.3:
-            #     freq_weight = WEIGHT_LOW
-            # else:
-            #     freq_weight = WEIGHT_MEDIUM
-
-            values[tf_id] = freq_weight
+            values[tf_id] = (4 * item["freq"] / max_freq) + 1
             frequent_itemsets_dict[key] = values
 
         # Let proceed the bar
@@ -217,7 +207,6 @@ def split_dataset_by_timeframe(dataset, timespan, timeunit, debug):
         debug_file = open("split_dataset_timeframe_debug.txt", "w")
 
     base_timeframe_item = None
-    bucket = []
     previous_timestamp = None
     timeframe_number = 0
 
@@ -240,7 +229,7 @@ def split_dataset_by_timeframe(dataset, timespan, timeunit, debug):
             end += 1
         else:
             if debug:
-                debug_file.write("Final timestamp: \t{} ({})\nN. items: {}\n\n".format(previous_timestamp, datetime.fromtimestamp(previous_timestamp), len(bucket)))
+                debug_file.write("Final timestamp: \t{} ({})\nN. items: {}\n\n".format(previous_timestamp, datetime.fromtimestamp(previous_timestamp), end-start))
 
             timeframes.append((start, end))
             start = end + 1
@@ -261,7 +250,7 @@ def split_dataset_by_timeframe(dataset, timespan, timeunit, debug):
     if start != end:
         timeframes.append((start, end))
         if debug:
-            debug_file.write("Final timestamp: \t{} ({})\nN. items: {}\n\n".format(previous_timestamp, datetime.fromtimestamp(previous_timestamp), len(bucket)))
+            debug_file.write("Final timestamp: \t{} ({})\nN. items: {}\n\n".format(previous_timestamp, datetime.fromtimestamp(previous_timestamp), end-start))
 
     if debug:
         debug_file.close()
