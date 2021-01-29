@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{13}
+\begin{thebibliography}{16}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -69,6 +69,17 @@ Customer-Complaints \bibinfo{year}{[n.d.]}\natexlab{}.
 \url{https://www.eonetwork.org/octane-magazine/special-features/sixstepstodealingwithcustomercomplaints}
 \showURL{%
 Retrieved December 18, 2020 from \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{hadoop-reference}{hadoop-reference}{[n.d.]}]%
+        {hadoop-reference}
+hadoop-reference \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Apache Hadoop reference}}.
+\newblock
+\urldef\tempurl%
+\url{https://hadoop.apache.org/}
+\showURL{%
+Retrieved January 10, 2021 from \tempurl}
 
 
 \bibitem[\protect\citeauthoryear{Han, Pei, and Yin}{Han et~al\mbox{.}}{2000}]%
@@ -138,6 +149,17 @@ pcy-multihash-algorithms \bibinfo{year}{[n.d.]}\natexlab{}.
 Retrieved January 10, 2021 from \tempurl}
 
 
+\bibitem[\protect\citeauthoryear{pyspark-reference}{pyspark-reference}{[n.d.]}]%
+        {pyspark-reference}
+pyspark-reference \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Pyspark Python library reference}}.
+\newblock
+\urldef\tempurl%
+\url{https://spark.apache.org/docs/latest/api/python/index.html}
+\showURL{%
+Retrieved January 10, 2021 from \tempurl}
+
+
 \bibitem[\protect\citeauthoryear{Python-nltk}{Python-nltk}{[n.d.]}]%
         {python-nltk}
 Python-nltk \bibinfo{year}{[n.d.]}\natexlab{}.
@@ -167,6 +189,17 @@ Sentiment-Analysis-Dataset \bibinfo{year}{[n.d.]}\natexlab{}.
 \newblock
 \urldef\tempurl%
 \url{https://www.kaggle.com/kazanova/sentiment140}
+\showURL{%
+Retrieved January 10, 2021 from \tempurl}
+
+
+\bibitem[\protect\citeauthoryear{spark-reference}{spark-reference}{[n.d.]}]%
+        {spark-reference}
+spark-reference \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Apache Spark reference}}.
+\newblock
+\urldef\tempurl%
+\url{https://spark.apache.org/}
 \showURL{%
 Retrieved January 10, 2021 from \tempurl}
 

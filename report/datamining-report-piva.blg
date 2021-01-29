@@ -21,6 +21,9 @@ Warning--empty organization in covid19-tweets-dataset
 Warning--empty organization in customer-satistaction
 Warning--empty year in customer-satistaction
 Warning--empty organization in customer-satistaction
+Warning--empty organization in hadoop-reference
+Warning--empty year in hadoop-reference
+Warning--empty organization in hadoop-reference
 Warning--empty organization in lemmatisation-stemming
 Warning--empty year in lemmatisation-stemming
 Warning--empty organization in lemmatisation-stemming
@@ -30,6 +33,9 @@ Warning--empty organization in matplotlib-python
 Warning--empty organization in pcy-multihash-algorithms
 Warning--empty year in pcy-multihash-algorithms
 Warning--empty organization in pcy-multihash-algorithms
+Warning--empty organization in pyspark-reference
+Warning--empty year in pyspark-reference
+Warning--empty organization in pyspark-reference
 Warning--empty organization in python-nltk
 Warning--empty year in python-nltk
 Warning--empty organization in python-nltk
@@ -39,51 +45,54 @@ Warning--empty organization in python-pandas
 Warning--empty organization in sentiment-analysis-dataset
 Warning--empty year in sentiment-analysis-dataset
 Warning--empty organization in sentiment-analysis-dataset
+Warning--empty organization in spark-reference
+Warning--empty year in spark-reference
+Warning--empty organization in spark-reference
 Warning--empty organization in twitter-stats
 Warning--empty year in twitter-stats
 Warning--empty organization in twitter-stats
 Warning--empty organization in upGrad
 Warning--empty year in upGrad
 Warning--empty organization in upGrad
-You've used 13 entries,
+You've used 16 entries,
             5727 wiz_defined-function locations,
-            1359 strings with 16397 characters,
-and the built_in function-call counts, 9627 in all, are:
-= -- 1001
+            1368 strings with 16631 characters,
+and the built_in function-call counts, 11493 in all, are:
+= -- 1178
 > -- 104
 < -- 0
-+ -- 45
++ -- 48
 - -- 32
-* -- 685
-:= -- 710
-add.period$ -- 43
-call.type$ -- 13
-change.case$ -- 71
-chr.to.int$ -- 13
-cite$ -- 46
-duplicate$ -- 1040
-empty$ -- 768
+* -- 817
+:= -- 830
+add.period$ -- 52
+call.type$ -- 16
+change.case$ -- 86
+chr.to.int$ -- 16
+cite$ -- 58
+duplicate$ -- 1259
+empty$ -- 936
 format.name$ -- 40
-if$ -- 2393
+if$ -- 2864
 int.to.chr$ -- 2
 int.to.str$ -- 1
 missing$ -- 9
-newline$ -- 184
+newline$ -- 217
 num.names$ -- 16
-pop$ -- 604
+pop$ -- 748
 preamble$ -- 1
-purify$ -- 122
+purify$ -- 146
 quote$ -- 0
-skip$ -- 344
+skip$ -- 410
 stack$ -- 0
-substring$ -- 520
-swap$ -- 120
+substring$ -- 613
+swap$ -- 141
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 376
-warning$ -- 33
+type$ -- 466
+warning$ -- 42
 while$ -- 10
 width$ -- 0
-write$ -- 281
-(There were 33 warnings)
+write$ -- 335
+(There were 42 warnings)

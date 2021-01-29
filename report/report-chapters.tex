@@ -98,7 +98,11 @@ As a final step, the delivered procedure has to build an output file in order to
 
 \section{Implementation}
 \label{sec:implementation}
+In order to implement the delivered project, different tools have been used. First of all, the entire project has been developed using the Python 3 programming language due to the fact that it has many libraries freely available that help programmers to deal with huge quantity of data and process them in relatively easy manner using its natural language toolkit frameworks. Thanks to those libraries, it has been possible to develop and test many slight variation of the delivered solution with the aim to find the most efficient one in a relative short time. As a result, one of the many scripts that have been developed to compare the efficiency has been taken as a quite advanced "baseline method" during the experimental evaluation phase described in Section \ref{sec:experimental_evaluation}. 
 
+The main external tool used during the development of this project is \textit{Apache Spark} \cite{spark-reference} in its version 3.0.1, a unified analytics engine for large scale data processing. Apache Spark is an efficient, fast and general purpose cluster computing framework with high-level APIs in different programming languages. Since it enables in-memory computations, Spark is way more efficient with respect to other frameworks that have been created for the same purpose, such as Apache Hadoop \cite{hadoop-reference}. The Apache Spark strength is that it provides many APIs that permits to parallelize the workload among all the cluster of machines in a really easy manner. Furthermore, Spark's APIs permits to access its data structures using SQL-like methods or using data-frame operations that are more or less the same as those ones exposed by the Pandas Python library \cite{python-pandas}.
+
+In order to integrate Apache Spark in the Python 3 script, the \textit{Pyspark} library \cite{pyspark-reference} has been used. PySpark has been released in order to integrate Apache Spark and the Python programming language; it actually is a Python API for Spark. In particular, in order to support Apache Spark that has been written in Scala programming language, Pyspark <CONTINUA>
 
 \section{Dataset}
 \label{sec:dataset}
