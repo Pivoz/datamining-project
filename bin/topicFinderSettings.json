@@ -1,9 +1,9 @@
 {
-  "dataset_relative_path": "../src/covid19_tweets_preprocessed.csv",
+  "dataset_relative_path": "../src/tweets_sentiment_analysis_preprocessed_new.csv",
   "timespan": 1,
   "timeunit": "day",
-  "timespan_threshold": 70,
-  "global_threshold": 3,
+  "timespan_threshold": 5,
+  "global_threshold": 2,
   "debug": true,
   "max_topics_to_show": 100,
   "pdf_output": "report.pdf"

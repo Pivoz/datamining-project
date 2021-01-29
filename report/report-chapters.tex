@@ -146,3 +146,10 @@ As a final step, the result list has been converted by the master process in a P
 
 \subsection{Test dataset}
 \label{subsec:test_dataset}
+In order to test the speed and the quality of the output produced by the delivered script, the dataset that groups more than 300.000 tweets that contain the hashtag \textit{\#covid19} \cite{covid19-tweets-dataset} has been used massively. This dataset has been already shown in details in Section \ref{sec:dataset}.
+
+With the aim of perform a more in-depth analysis of the performances of the script, a bigger dataset has been uses: this dataset \cite{sentiment-analysis-dataset} contains 1.600.000 tweets extracted using the twitter API and they have been annotated in order to be used to detect sentiment. This dataset is stored in a CSV file where each item is composed by six fields: \textit{target} (the polarity of the tweet), \textit{ids} (tweet's id), \textit{date}, \textit{flag}, \textit{user} and \textit{text}. 
+
+The most significant problem with using this dataset was during the pre-processing phase: the date field of each tweet was formatted using a not too handy format. As an example, the date of the first tweet was "Mon Apr 06 22:19:49 PDT 2009" and it has been quite hard to transform that date to a UNIX timestamp as required.
+
+The other problem about this dataset is that it has not too many consistent topics over time, even if the quality of those detected by the algorithm described in Section \ref{sec:solution} is high. As a matter of fact, the hyper-parameters TS-threshold and GB-threshold has been set to, respectively, 5 and 2 in order to catch some consistent topics (with the dataset about covid \cite{covid19-tweets-dataset} those hyper-parameters have been set usually to, respectively, 70 and 3). 
