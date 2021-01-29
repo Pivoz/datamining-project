@@ -11,6 +11,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.backends.backend_pdf
+import time
 
 WEIGHT_LOW = 1
 WEIGHT_MEDIUM = 3
@@ -169,14 +170,15 @@ def find_frequent_topics(timeframes_limits, tweets_dataset, support_threshold):
 
             # Update the frequencies
             values = frequent_itemsets_dict[key]
-            freq_ratio = item["freq"] / max_freq
 
-            if freq_ratio >= 0.8:
-                freq_weight = WEIGHT_HIGH
-            elif freq_ratio < 0.3:
-                freq_weight = WEIGHT_LOW
-            else:
-                freq_weight = WEIGHT_MEDIUM
+            freq_weight = (4 * item["freq"] / max_freq) + 1
+            # freq_ratio = item["freq"] / max_freq
+            # if freq_ratio >= 0.8:
+            #     freq_weight = WEIGHT_HIGH
+            # elif freq_ratio < 0.3:
+            #     freq_weight = WEIGHT_LOW
+            # else:
+            #     freq_weight = WEIGHT_MEDIUM
 
             values[tf_id] = freq_weight
             frequent_itemsets_dict[key] = values
@@ -369,6 +371,7 @@ if __name__ == "__main__":
     # Produce final report of findings
     print("--- Producing the final report ---")
     make_report(consistent_topics_in_time_dict, output_file_report, timespan_threshold, global_threshold, n_timeframes, max_topics_to_show)
+    time.sleep(2)
     print("--- Report saved ---")
 
     # Finish the execution of Spark
