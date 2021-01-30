@@ -335,6 +335,7 @@ if __name__ == "__main__":
     spark = SparkSession \
         .builder \
         .appName("Data mining project - Davide Piva") \
+        .master("local[*]") \
         .config("spark.ui.showConsoleProgress", "false") \
         .getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")

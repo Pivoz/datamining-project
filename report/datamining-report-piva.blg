@@ -33,6 +33,9 @@ Warning--empty organization in lemmatisation-stemming
 Warning--empty organization in matplotlib-python
 Warning--empty year in matplotlib-python
 Warning--empty organization in matplotlib-python
+Warning--empty organization in mlxtend-reference
+Warning--empty year in mlxtend-reference
+Warning--empty organization in mlxtend-reference
 Warning--empty organization in pcy-multihash-algorithms
 Warning--empty year in pcy-multihash-algorithms
 Warning--empty organization in pcy-multihash-algorithms
@@ -60,45 +63,45 @@ Warning--empty organization in twitter-stats
 Warning--empty organization in upGrad
 Warning--empty year in upGrad
 Warning--empty organization in upGrad
-You've used 18 entries,
+You've used 19 entries,
             5727 wiz_defined-function locations,
-            1374 strings with 16760 characters,
-and the built_in function-call counts, 12737 in all, are:
-= -- 1296
+            1377 strings with 16833 characters,
+and the built_in function-call counts, 13359 in all, are:
+= -- 1355
 > -- 104
 < -- 0
-+ -- 50
++ -- 51
 - -- 32
-* -- 905
-:= -- 910
-add.period$ -- 58
-call.type$ -- 18
-change.case$ -- 96
-chr.to.int$ -- 18
-cite$ -- 66
-duplicate$ -- 1405
-empty$ -- 1048
+* -- 949
+:= -- 950
+add.period$ -- 61
+call.type$ -- 19
+change.case$ -- 101
+chr.to.int$ -- 19
+cite$ -- 70
+duplicate$ -- 1478
+empty$ -- 1104
 format.name$ -- 40
-if$ -- 3178
+if$ -- 3335
 int.to.chr$ -- 2
 int.to.str$ -- 1
 missing$ -- 9
-newline$ -- 239
+newline$ -- 250
 num.names$ -- 16
-pop$ -- 844
+pop$ -- 892
 preamble$ -- 1
-purify$ -- 162
+purify$ -- 170
 quote$ -- 0
-skip$ -- 454
+skip$ -- 476
 stack$ -- 0
-substring$ -- 675
-swap$ -- 155
+substring$ -- 706
+swap$ -- 162
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 526
-warning$ -- 48
+type$ -- 556
+warning$ -- 51
 while$ -- 10
 width$ -- 0
-write$ -- 371
-(There were 48 warnings)
+write$ -- 389
+(There were 51 warnings)

@@ -1,5 +1,5 @@
 {
-  "dataset_relative_path": "../src/tweets_sentiment_analysis_preprocessed_new.csv",
+  "dataset_relative_path": "../src/covid19_tweets_preprocessed.csv",
   "timespan": 1,
   "timeunit": "day",
   "timespan_threshold": 5,
